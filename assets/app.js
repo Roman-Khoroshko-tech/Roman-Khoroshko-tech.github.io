@@ -10,20 +10,18 @@ function card(t){
   // SVG strings come only from the fixed local allowlist, never from JSON.
   icon.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${icons[t.icon]}</svg>`;
   top.append(icon,element('span',`badge ${t.status}`,statuses[t.status]));
-  c.append(top,element('p','tool-category',t.category),element('h3','',t.name),element('p','description',t.description));
+  c.append(top,element('h3','',t.name),element('p','description',t.description));
   const bottom=element('div','card-bottom');bottom.append(element('span','',t.version?`Версія ${t.version}`:'Версію ще не випущено'));
   if(['ready','beta'].includes(t.status)){const link=element('a','open','Відкрити інструмент ↗');link.href=t.url;link.setAttribute('aria-label',`Відкрити ${t.name}`);bottom.append(link);}else bottom.append(element('span','',t.status==='planned'?'Незабаром':'Готується до публікації'));
   c.append(bottom);return c;
 }
-function render(){const visible=filterTools(tools,$('search').value,$('category').value,status);$('tools').replaceChildren(...visible.map(card));$('result-count').textContent=`Показано ${visible.length} з ${tools.length}`;$('message').hidden=visible.length>0;$('message').textContent=tools.length?'За цими умовами інструментів немає. Змініть пошук або фільтри.':'Каталог поки порожній.';}
+function render(){const visible=filterTools(tools,'','',status);$('tools').replaceChildren(...visible.map(card));$('result-count').textContent=`Показано ${visible.length} з ${tools.length}`;$('message').hidden=visible.length>0;$('message').textContent=tools.length?'Інструментів із цим статусом поки немає.':'Каталог поки порожній.';}
 async function load(){
   $('retry').hidden=true;$('message').hidden=false;$('message').textContent='Завантаження каталогу…';
   try{const response=await fetch(new URL('../tools.json',import.meta.url),{cache:'no-cache'});if(!response.ok)throw Error(`HTTP ${response.status}`);tools=validateCatalog(await response.json());
-    $('total').textContent=String(tools.length);$('category').replaceChildren(new Option('Усі категорії',''),...[...new Set(tools.map(t=>t.category))].sort((a,b)=>a.localeCompare(b,'uk')).map(c=>new Option(c,c)));render();
+    $('total').textContent=String(tools.length);render();
   }catch(error){tools=[];$('tools').replaceChildren();$('total').textContent='–';$('result-count').textContent='';$('message').textContent='Не вдалося завантажити каталог. Перевірте з’єднання та спробуйте ще раз.';$('message').hidden=false;$('retry').hidden=false;console.error('Catalog:',error);}
 }
-$('search').addEventListener('input',render);$('category').addEventListener('change',render);
 $('filters').addEventListener('click',e=>{const b=e.target.closest('button[data-filter]');if(!b)return;status=b.dataset.filter;for(const item of $('filters').querySelectorAll('button'))item.setAttribute('aria-pressed',String(item===b));render();});
 $('retry').addEventListener('click',load);
-document.addEventListener('keydown',e=>{if(e.key==='/'&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)&&!document.activeElement.isContentEditable){e.preventDefault();$('search').focus();}});
 load();
