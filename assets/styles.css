@@ -4,3 +4,5 @@
 .technical{display:none!important}
 
 .catalog{padding-top:48px}.section-heading h1{margin:0}.card-link{cursor:pointer}.card:not(.card-link):hover{box-shadow:none;border-color:var(--border)}.contact-link{color:var(--accent);text-decoration:underline;text-underline-offset:4px}.contact-link:hover{text-decoration-thickness:2px}@media(max-width:580px){.catalog{padding-top:32px}}
+
+.portal-heading{padding:48px 0 32px}.portal-heading h1{margin:0 0 14px;font-size:clamp(30px,3.4vw,42px);line-height:1.25;letter-spacing:-1px}.portal-heading h1>span{color:var(--text)}.portal-heading p{margin:0;color:var(--muted);font-size:15px}.portal-heading+.catalog{padding-top:0}@media(max-width:580px){.portal-heading{padding:32px 0 28px}.portal-heading p{font-size:14px}}
