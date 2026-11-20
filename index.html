@@ -6,9 +6,9 @@
   <meta name="color-scheme" content="light dark">
   <title>Roman Khoroshko Engineering Tools</title>
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./assets/styles.css?v=1.0.3">
+  <link rel="stylesheet" href="./assets/styles.css?v=1.0.4">
   <script src="./assets/theme.js"></script>
-  <script type="module" src="./assets/app.js?v=1.0.3"></script>
+  <script type="module" src="./assets/app.js?v=1.0.4"></script>
 </head>
 <body>
 <a class="skip" href="#catalog">Перейти до каталогу</a>
@@ -17,17 +17,14 @@
   <nav aria-label="Основна навігація"><a class="nav-link" href="#catalog">Інструменти</a><a class="nav-link" href="#about">Про портал</a><a class="github-link" href="https://github.com/Roman-Khoroshko-tech/Roman-Khoroshko-tech.github.io">GitHub ↗</a><button id="theme" class="theme" aria-label="Увімкнути темну тему" aria-pressed="false">◐</button></nav>
 </div></header>
 <main class="shell">
-  <section class="hero" aria-labelledby="title">
-    <div><p class="eyebrow"><span class="dot"></span> ПЕРСОНАЛЬНА ІНЖЕНЕРНА МАЙСТЕРНЯ</p><h1 id="title">Engineering tools.<br><span>Для практичних задач.</span></h1><p class="intro">Інструменти для електропривода й автоматизації.<br>Редактори, калькулятори та технічні довідники – в одному місці.</p><a class="primary" href="https://roman-khoroshko-tech.github.io/MFC710-PLC-editor/">Відкрити редактор ПЛК <span aria-hidden="true">↗</span></a></div>
-  </section>
-  <section id="catalog" class="catalog" aria-labelledby="catalog-title">
-    <div class="section-heading"><div><p class="eyebrow">РОБОЧИЙ ПРОСТІР</p><h2 id="catalog-title">Каталог інструментів <span id="total" class="count">–</span></h2></div><span class="catalog-note">Незалежні застосунки · У браузері</span></div>
+  <section id="catalog" class="catalog" aria-labelledby="title">
+    <div class="section-heading"><h1 id="title">Каталог програм</h1><span id="total" hidden></span></div>
     <div class="results-bar"><div id="filters" class="filters" role="group" aria-label="Статус інструмента"><button data-filter="all" aria-pressed="true">Усі</button><button data-filter="available" aria-pressed="false">Доступні</button><button data-filter="planned" aria-pressed="false">Заплановані</button></div><p id="result-count" role="status" aria-live="polite"></p></div>
     <p id="message" role="status">Завантаження каталогу…</p><button id="retry" class="secondary" hidden>Спробувати ще раз</button>
     <div id="tools" class="grid"></div>
     <noscript><p>Увімкніть JavaScript, щоб переглядати каталог інструментів.</p></noscript>
   </section>
-  <section id="about" class="about"><div><p class="eyebrow">ПРО ПОРТАЛ</p><h2>Від інженера – для роботи.</h2></div><div><p>Я – Роман Хорошко, інженер з електропривода та промислової автоматизації. Тут зібрані інструменти, які я розробляю для повсякденних технічних задач.</p><p class="muted">Кожен застосунок розвивається окремо. Його можливості, обмеження та правила роботи з даними описані у відповідному репозиторії.</p></div></section>
+  <section id="about" class="about" aria-labelledby="about-title"><h2 id="about-title">Про портал</h2><p><a class="contact-link" href="mailto:37rkhoroshko@gmail.com">37rkhoroshko@gmail.com</a></p></section>
 </main>
-<footer class="shell"><span>Roman Khoroshko <span class="muted">/ Engineering Tools</span></span><span class="muted">Електропривод · Автоматизація · Інженерія</span><a href="#title">Нагору ↑</a></footer>
+<footer class="shell"><span class="muted">Електропривод · Автоматизація · Інженерія</span><a href="#title">Нагору ↑</a></footer>
 </body></html>
