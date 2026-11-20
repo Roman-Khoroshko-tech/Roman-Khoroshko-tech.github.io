@@ -6,9 +6,9 @@
   <meta name="color-scheme" content="light dark">
   <title>Roman Khoroshko Engineering Tools</title>
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./assets/styles.css?v=1.0.2">
+  <link rel="stylesheet" href="./assets/styles.css?v=1.0.3">
   <script src="./assets/theme.js"></script>
-  <script type="module" src="./assets/app.js"></script>
+  <script type="module" src="./assets/app.js?v=1.0.3"></script>
 </head>
 <body>
 <a class="skip" href="#catalog">Перейти до каталогу</a>
@@ -22,11 +22,10 @@
   </section>
   <section id="catalog" class="catalog" aria-labelledby="catalog-title">
     <div class="section-heading"><div><p class="eyebrow">РОБОЧИЙ ПРОСТІР</p><h2 id="catalog-title">Каталог інструментів <span id="total" class="count">–</span></h2></div><span class="catalog-note">Незалежні застосунки · У браузері</span></div>
-    <div class="controls"><div class="search-wrap"><span aria-hidden="true">⌕</span><label class="sr-only" for="search">Пошук інструментів</label><input id="search" type="search" placeholder="Пошук за назвою або описом…" autocomplete="off"><kbd aria-hidden="true">/</kbd></div><label class="category-label">Категорія<select id="category"><option value="">Усі категорії</option></select></label></div>
     <div class="results-bar"><div id="filters" class="filters" role="group" aria-label="Статус інструмента"><button data-filter="all" aria-pressed="true">Усі</button><button data-filter="available" aria-pressed="false">Доступні</button><button data-filter="planned" aria-pressed="false">Заплановані</button></div><p id="result-count" role="status" aria-live="polite"></p></div>
     <p id="message" role="status">Завантаження каталогу…</p><button id="retry" class="secondary" hidden>Спробувати ще раз</button>
     <div id="tools" class="grid"></div>
-    <noscript><p>Увімкніть JavaScript, щоб переглядати каталог і шукати інструменти.</p></noscript>
+    <noscript><p>Увімкніть JavaScript, щоб переглядати каталог інструментів.</p></noscript>
   </section>
   <section id="about" class="about"><div><p class="eyebrow">ПРО ПОРТАЛ</p><h2>Від інженера – для роботи.</h2></div><div><p>Я – Роман Хорошко, інженер з електропривода та промислової автоматизації. Тут зібрані інструменти, які я розробляю для повсякденних технічних задач.</p><p class="muted">Кожен застосунок розвивається окремо. Його можливості, обмеження та правила роботи з даними описані у відповідному репозиторії.</p></div></section>
 </main>
