@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Інженерні інструменти Романа Хорошка: електропривод, ПЛК, HMI та автоматизація.">
+  <meta name="color-scheme" content="light dark">
+  <title>Roman Khoroshko Engineering Tools</title>
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/styles.css">
+  <script src="./assets/theme.js"></script>
+  <script type="module" src="./assets/app.js"></script>
+</head>
+<body>
+<a class="skip" href="#catalog">Перейти до каталогу</a>
+<header class="topbar"><div class="shell header-inner">
+  <a class="brand" href="./" aria-label="Engineering Tools – головна"><span class="monogram">RK<span>↗</span></span><span>Roman Khoroshko<small>ENGINEERING TOOLS</small></span></a>
+  <nav aria-label="Основна навігація"><a class="nav-link" href="#catalog">Інструменти</a><a class="nav-link" href="#about">Про портал</a><a class="github-link" href="https://github.com/Roman-Khoroshko-tech/Roman-Khoroshko-tech.github.io">GitHub ↗</a><button id="theme" class="theme" aria-label="Увімкнути темну тему" aria-pressed="false">◐</button></nav>
+</div></header>
+<main class="shell">
+  <section class="hero" aria-labelledby="title">
+    <div><p class="eyebrow"><span class="dot"></span> ПЕРСОНАЛЬНА ІНЖЕНЕРНА МАЙСТЕРНЯ</p><h1 id="title">Engineering tools.<br><span>Для практичних задач.</span></h1><p class="intro">Інструменти для електропривода й автоматизації.<br>Редактори, калькулятори та технічні довідники – в одному місці.</p><a class="primary" href="#catalog">До інструментів <span aria-hidden="true">↓</span></a></div>
+    <div class="technical" aria-hidden="true"><div class="diagram-label">CONTROL / LOGIC</div><svg viewBox="0 0 360 200" fill="none"><path d="M0 66H70M0 134H70M154 100H212M296 100H360" stroke="currentColor" stroke-width="2"/><rect x="70" y="36" width="84" height="128" rx="5" stroke="currentColor" stroke-width="2"/><rect x="212" y="60" width="84" height="80" rx="5" stroke="currentColor" stroke-width="2"/><g fill="currentColor"><circle cx="70" cy="66" r="4"/><circle cx="70" cy="134" r="4"/><circle cx="154" cy="100" r="4"/><circle cx="212" cy="100" r="4"/><circle cx="296" cy="100" r="4"/></g><g fill="currentColor" font-family="monospace" font-size="15"><text x="95" y="105">AND</text><text x="240" y="105">OUT</text><text x="18" y="55" font-size="10">IN.01</text><text x="18" y="123" font-size="10">IN.02</text></g></svg><div class="diagram-footer"><span>Електропривод</span><span>ПЛК</span><span>HMI</span></div></div>
+  </section>
+  <section id="catalog" class="catalog" aria-labelledby="catalog-title">
+    <div class="section-heading"><div><p class="eyebrow">РОБОЧИЙ ПРОСТІР</p><h2 id="catalog-title">Каталог інструментів <span id="total" class="count">–</span></h2></div><span class="catalog-note">Незалежні застосунки · У браузері</span></div>
+    <div class="controls"><div class="search-wrap"><span aria-hidden="true">⌕</span><label class="sr-only" for="search">Пошук інструментів</label><input id="search" type="search" placeholder="Пошук за назвою або описом…" autocomplete="off"><kbd aria-hidden="true">/</kbd></div><label class="category-label">Категорія<select id="category"><option value="">Усі категорії</option></select></label></div>
+    <div class="results-bar"><div id="filters" class="filters" role="group" aria-label="Статус інструмента"><button data-filter="all" aria-pressed="true">Усі</button><button data-filter="available" aria-pressed="false">Доступні</button><button data-filter="planned" aria-pressed="false">Заплановані</button></div><p id="result-count" role="status" aria-live="polite"></p></div>
+    <p id="message" role="status">Завантаження каталогу…</p><button id="retry" class="secondary" hidden>Спробувати ще раз</button>
+    <div id="tools" class="grid"></div>
+    <noscript><p>Увімкніть JavaScript, щоб переглядати каталог і шукати інструменти.</p></noscript>
+  </section>
+  <section id="about" class="about"><div><p class="eyebrow">ПРО ПОРТАЛ</p><h2>Від інженера – для роботи.</h2></div><div><p>Я – Роман Хорошко, інженер з електропривода та промислової автоматизації. Тут зібрані інструменти, які я розробляю для повсякденних технічних задач.</p><p class="muted">Кожен застосунок розвивається окремо. Його можливості, обмеження та правила роботи з даними описані у відповідному репозиторії.</p></div></section>
+</main>
+<footer class="shell"><span>Roman Khoroshko <span class="muted">/ Engineering Tools</span></span><span class="muted">Електропривод · Автоматизація · Інженерія</span><a href="#title">Нагору ↑</a></footer>
+</body></html>

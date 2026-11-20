@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "tools": [
+    {
+      "id": "mfc710-plc-editor",
+      "name": "MFC710 PLC Studio",
+      "description": "Графічний редактор вбудованого ПЛК MFC710. Побудова функціональних схем, з’єднання блоків та експорт таблиці параметрів для ручного перенесення у ПЧ.",
+      "category": "ПЛК та програмування",
+      "url": null,
+      "icon": "plc",
+      "version": "0.1.0-rc.1",
+      "status": "development",
+      "order": 10
+    },
+    {
+      "id": "mfc2000-hmi-graphs-viewer",
+      "name": "MFC2000 HMI Graphs Viewer",
+      "description": "Інструмент для перегляду графіків, отриманих з HMI перетворювача частоти MFC2000. Аналіз робочих даних і діагностика електропривода.",
+      "category": "HMI та діагностика",
+      "url": null,
+      "icon": "chart",
+      "status": "planned",
+      "order": 20
+    }
+  ]
+}

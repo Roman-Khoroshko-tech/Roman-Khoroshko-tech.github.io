@@ -1,0 +1,8 @@
+{
+  "name": "roman-khoroshko-engineering-tools",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {"node": ">=22"},
+  "scripts": {"start": "node scripts/server.mjs", "test": "node --test tests/*.test.mjs", "build": "node scripts/build.mjs"}
+}
