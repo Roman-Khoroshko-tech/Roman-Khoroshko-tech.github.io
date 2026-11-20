@@ -6,10 +6,10 @@
       "name": "MFC710 PLC Studio",
       "description": "Графічний редактор вбудованого ПЛК MFC710. Побудова функціональних схем, з’єднання блоків та експорт таблиці параметрів для ручного перенесення у ПЧ.",
       "category": "ПЛК та програмування",
-      "url": null,
+      "url": "https://roman-khoroshko-tech.github.io/MFC710-PLC-editor/",
       "icon": "plc",
       "version": "0.1.0-rc.1",
-      "status": "development",
+      "status": "beta",
       "order": 10
     },
     {

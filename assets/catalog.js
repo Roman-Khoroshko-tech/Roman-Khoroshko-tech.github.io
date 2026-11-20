@@ -8,7 +8,7 @@ export function validateCatalog(data) {
   if (!data || data.schemaVersion !== 1 || !Array.isArray(data.tools)) throw Error('Невідома структура tools.json.');
   const ids = new Set();
   for (const [i, t] of data.tools.entries()) {
-    if (!t || typeof t !== 'object' || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(t.id) || ids.has(t.id)) throw Error(`Запис ${i + 1}: некоректний або повторний id.`);
+    if (!t || typeof t !== 'object' || typeof t.id !== 'string' || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(t.id) || ids.has(t.id)) throw Error(`Запис ${i + 1}: некоректний або повторний id.`);
     ids.add(t.id);
     for (const key of ['name','description','category']) if (typeof t[key] !== 'string' || !t[key].trim()) throw Error(`${t.id}: відсутнє поле ${key}.`);
     if (!Object.hasOwn(statuses,t.status) || !Object.hasOwn(icons,t.icon) || !Number.isFinite(t.order)) throw Error(`${t.id}: перевірте status, icon та order.`);
