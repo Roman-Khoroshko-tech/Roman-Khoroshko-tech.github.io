@@ -47,14 +47,16 @@ npm start
 4. Actions → Validate and deploy Pages: дочекайся успішного check і deploy. За потреби запусти workflow вручну.
 5. Перевір головну адресу, завантаження tools.json, пошук, тему та мобільний екран. Не вважай успішне завантаження коду підтвердженням доступності сайту.
 
-Через Git із цього каталогу після створення репозиторію:
+Для подальшої роботи з уже опублікованим репозиторієм склонуй його в нову папку, щоб отримати повну історію GitHub:
 
 ```sh
-git remote add origin https://github.com/Roman-Khoroshko-tech/Roman-Khoroshko-tech.github.io.git
-git push -u origin main
+git clone https://github.com/Roman-Khoroshko-tech/Roman-Khoroshko-tech.github.io.git
+cd Roman-Khoroshko-tech.github.io
+npm test
+npm start
 ```
 
-Якщо origin уже існує, перевір git remote -v; не змінюй його навмання.
+Після змін використовуй git add, git commit і git push. Для критичних змін – окрема гілка та PR. Локальна підготовча копія з цього сеансу має окрему початкову історію; для наступних Git-оновлень використовуй свіжий clone, а не force push. Репозиторій редактора клонується аналогічно за його власною адресою.
 
 ## Дані та безпека
 
