@@ -6,23 +6,19 @@
   <meta name="color-scheme" content="light dark">
   <title>Roman Khoroshko Engineering Tools</title>
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./assets/styles.css?v=1.0.6">
+  <link rel="stylesheet" href="./assets/styles.css?v=1.0.7">
   <script src="./assets/theme.js"></script>
   <script type="module" src="./assets/app.js?v=1.0.4"></script>
 </head>
 <body>
 <a class="skip" href="#catalog">Перейти до каталогу</a>
-<header class="topbar"><div class="shell header-inner">
+<header id="top" class="topbar"><div class="shell header-inner">
   <a class="brand" href="./" aria-label="Engineering Tools – головна"><span class="monogram">RK<span>↗</span></span><span>Roman Khoroshko<small>ENGINEERING TOOLS</small></span></a>
   <nav aria-label="Основна навігація"><a class="nav-link" href="#catalog">Інструменти</a><a class="nav-link" href="#about">Про портал</a><a class="github-link" href="https://github.com/Roman-Khoroshko-tech/Roman-Khoroshko-tech.github.io">GitHub ↗</a><button id="theme" class="theme" aria-label="Увімкнути темну тему" aria-pressed="false">◐</button></nav>
 </div></header>
 <main class="shell">
-  <section class="portal-heading" aria-labelledby="title">
-    <h1 id="title">Roman Khoroshko<br><span>Engineering Tools</span></h1>
-    <p>вебпортал інженерних інструментів</p>
-  </section>
   <section id="catalog" class="catalog" aria-labelledby="catalog-title">
-    <div class="section-heading"><h2 id="catalog-title">Каталог програм <span id="total" class="count" aria-label="Кількість програм">–</span></h2></div>
+    <div class="section-heading"><h1 id="catalog-title">Каталог програм <span id="total" class="count" aria-label="Кількість програм">–</span></h1></div>
     <div class="results-bar"><div id="filters" class="filters" role="group" aria-label="Статус інструмента"><button data-filter="all" aria-pressed="true">Усі</button><button data-filter="available" aria-pressed="false">Доступні</button><button data-filter="planned" aria-pressed="false">Заплановані</button></div><p id="result-count" role="status" aria-live="polite"></p></div>
     <p id="message" role="status">Завантаження каталогу…</p><button id="retry" class="secondary" hidden>Спробувати ще раз</button>
     <div id="tools" class="grid"></div>
@@ -39,5 +35,5 @@
     </div>
   </section>
 </main>
-<footer class="shell"><span class="muted">Електропривод · Автоматизація · Інженерія</span><a href="#title">Нагору ↑</a></footer>
+<footer class="shell"><span class="muted">Електропривод · Автоматизація · Інженерія</span><a href="#top">Нагору ↑</a></footer>
 </body></html>
