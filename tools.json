@@ -21,6 +21,16 @@
       "icon": "chart",
       "status": "planned",
       "order": 20
+    },
+    {
+      "id": "mfc710-rs-monitor",
+      "name": "MFC710 RS Monitor",
+      "description": "Моніторинг параметрів і керування перетворювачем частоти MFC710 через RS-485 у браузері. Графіки в реальному часі та експорт даних у CSV.",
+      "category": "Моніторинг та керування",
+      "url": null,
+      "icon": "chart",
+      "status": "planned",
+      "order": 30
     }
   ]
 }
