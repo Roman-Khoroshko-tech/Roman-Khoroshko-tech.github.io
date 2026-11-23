@@ -19,7 +19,7 @@
       "category": "HMI та діагностика",
       "url": "https://roman-khoroshko-tech.github.io/MFC2000-HMI-Graphs-Viewer/",
       "icon": "chart",
-      "status": "ready",
+      "status": "beta",
       "order": 20,
       "version": "2.1.0"
     },
