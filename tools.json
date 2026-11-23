@@ -15,12 +15,14 @@
     {
       "id": "mfc2000-hmi-graphs-viewer",
       "name": "MFC2000 HMI Graphs Viewer",
-      "description": "Інструмент для перегляду графіків, отриманих з HMI перетворювача частоти MFC2000. Аналіз робочих даних і діагностика електропривода.",
+      "description": "Перегляд CSV-архівів HMI перетворювача частоти MFC2000: графіки частоти, струмів, напруг і температур для аналізу роботи електропривода.",
       "category": "HMI та діагностика",
-      "url": null,
+      "url": "https://roman-khoroshko-tech.github.io/MFC2000-HMI-Graphs-Viewer/",
       "icon": "chart",
-      "status": "planned",
-      "order": 20
+      "status": "ready",
+      "order": 20,
+      "version": "2.1.0",
+      "launchLabel": "Запустити →"
     },
     {
       "id": "mfc710-rs-monitor",

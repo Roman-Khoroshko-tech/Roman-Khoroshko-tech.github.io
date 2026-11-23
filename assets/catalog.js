@@ -13,6 +13,7 @@ export function validateCatalog(data) {
     for (const key of ['name','description','category']) if (typeof t[key] !== 'string' || !t[key].trim()) throw Error(`${t.id}: відсутнє поле ${key}.`);
     if (!Object.hasOwn(statuses,t.status) || !Object.hasOwn(icons,t.icon) || !Number.isFinite(t.order)) throw Error(`${t.id}: перевірте status, icon та order.`);
     if (t.version !== undefined && (typeof t.version !== 'string' || !t.version.trim())) throw Error(`${t.id}: некоректна версія.`);
+    if (t.launchLabel !== undefined && (typeof t.launchLabel !== 'string' || !t.launchLabel.trim())) throw Error(`${t.id}: некоректний підпис запуску.`);
     if (t.url !== null && !safeUrl(t.url)) throw Error(`${t.id}: URL повинен бути абсолютним HTTPS або null.`);
     if (['ready','beta'].includes(t.status) && !safeUrl(t.url)) throw Error(`${t.id}: доступний інструмент потребує URL.`);
   }

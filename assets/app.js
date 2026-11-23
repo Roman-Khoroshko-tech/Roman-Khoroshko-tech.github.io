@@ -14,6 +14,7 @@ function card(t){
   top.append(icon,element('span',`badge ${t.status}`,statuses[t.status]));
   c.append(top,element('h3','',t.name),element('p','description',t.description));
   const bottom=element('div','card-bottom');bottom.append(element('span','',t.version?`Версія ${t.version}`:'Версію ще не випущено'));
+  if(available&&t.launchLabel)bottom.append(element('span','primary',t.launchLabel));
   if(!available)bottom.append(element('span','',t.status==='planned'?'Незабаром':'Готується до публікації'));
   c.append(bottom);return c;
 }
