@@ -25,12 +25,13 @@
     {
       "id": "mfc710-rs-monitor",
       "name": "MFC710 RS Monitor",
-      "description": "Моніторинг параметрів і керування перетворювачем частоти MFC710 через RS-485 у браузері. Графіки в реальному часі та експорт даних у CSV.",
+      "description": "Графіки в реальному часі для діагностики, керування та карти параметрування TWERD MFC710 через RS-485.",
       "category": "Моніторинг та керування",
-      "url": null,
+      "url": "https://roman-khoroshko-tech.github.io/mfc710-rs-monitor/",
       "icon": "chart",
-      "status": "planned",
-      "order": 30
+      "status": "beta",
+      "order": 30,
+      "version": "0.1.0-beta.1"
     }
   ]
 }
