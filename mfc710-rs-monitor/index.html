@@ -1,0 +1,3441 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Моніторинг, діагностика та карти параметрування TWERD MFC710 через RS-485.">
+<title>MFC710 RS Monitor</title>
+<style>
+:root{color-scheme:light;--bg:#f6f8f8;--panel:#fff;--inside:#f6f8f8;--edge:#dde5e7;--text:#172b32;--muted:#65777e;--accent:#157568;--soft:#e7f2ef;--shadow:0 8px 26px #183e3310;--red:#a5303d;--red-soft:#fbebed;--amber:#80540e;--amber-soft:#fff4de;--button-text:#fff;font:14px/1.5 Inter,"Segoe UI",Arial,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text)}main{max-width:1650px;margin:auto;padding:20px clamp(12px,2.5vw,36px) 36px}
+header,.row,.chart-head,.signal,.health{display:flex;align-items:center;gap:10px;flex-wrap:wrap}header,.chart-head{justify-content:space-between}
+h1,h2,h3,p{margin:0}h1{font-size:clamp(22px,3vw,31px);letter-spacing:-.035em}h2{font-size:17px}h3{font-size:15px}small,.muted{color:var(--muted)}a{color:var(--accent)}button,input,select{font:inherit;color:inherit;background:var(--inside);border:1px solid var(--edge);border-radius:7px;padding:7px 10px;min-height:36px}button{cursor:pointer;font-weight:600}button:hover:not(:disabled){border-color:var(--accent)}button:disabled{opacity:.46;cursor:default}:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.primary{background:var(--accent);color:#102222;border-color:transparent}.panel{background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:14px}.connection{margin:15px 0}.connection label{display:grid;gap:3px;color:var(--muted);font-size:12px}.connection .row{align-items:end}.connection input{width:80px}.connection select{min-width:100px}.health{margin-top:12px;border-top:1px solid var(--edge);padding-top:10px}.status{font-weight:650}.status[data-tone=good],.flag[data-on=true]{color:var(--accent)}.status[data-tone=bad],.flag[data-alert=bad][data-on=true]{color:var(--red)}.status[data-tone=demo],.flag[data-alert=warn][data-on=true]{color:var(--amber)}.flag{border:1px solid var(--edge);border-radius:5px;padding:2px 6px;color:var(--muted);font-size:12px}.flag[data-on=unknown]{opacity:.72}.last{margin-left:auto;font-variant-numeric:tabular-nums}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,320px);gap:14px;align-items:start}.charts{margin-top:12px;display:grid;gap:8px}.plot{position:relative;background:var(--inside);border:1px solid var(--edge);border-radius:7px;overflow:hidden}.plot h3{padding:5px 10px 0;font-size:12px;color:var(--muted)}canvas{display:block;width:100%;height:126px}.placeholder{padding:55px 12px;text-align:center;color:var(--muted)}.hint{font-size:12px;margin-top:8px;color:var(--muted)}.signals{display:grid;gap:8px;margin:10px 0}.signal{gap:8px;flex-wrap:nowrap;border-top:1px solid var(--edge);padding:7px 0 0}.signal>label{min-width:0;flex:1;overflow-wrap:anywhere}.signal label small{display:block}.signal output{min-width:44px;text-align:right;font:600 13px/1.4 Consolas,monospace}.signal output[data-stale=true]{color:var(--muted);text-decoration:underline dotted}.signal button{padding:2px 7px;min-height:27px}.signal input{min-height:auto;accent-color:var(--accent);margin:0}.chip{display:inline-block;width:8px;height:8px;border-radius:50%;flex:none}.search{width:100%;margin-top:10px}.results{max-height:210px;overflow:auto}.results:empty{display:none}.results button{display:block;width:100%;text-align:left;border-radius:4px;margin-top:3px}.popup{position:absolute;pointer-events:none;background:#091118;border:1px solid var(--edge);padding:5px 8px;border-radius:5px;white-space:pre;font-size:12px;z-index:1;max-width:95%;overflow:hidden}
+dialog{max-width:min(680px,calc(100vw - 24px));max-height:90vh;overflow:auto;background:var(--panel);color:var(--text);border:1px solid var(--edge);border-radius:12px;padding:18px}dialog::backdrop{background:#0009}dialog p,dialog h3,dialog ol{margin:10px 0}dialog form{margin-top:14px}dialog table{width:100%;border-collapse:collapse}dialog td,dialog th{text-align:left;padding:6px;border-bottom:1px solid var(--edge)}.factor{max-width:110px}.chart-head label{display:flex;align-items:center;gap:5px}.notice{min-height:1.3em;margin-top:5px}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.last{margin-left:0}}@media(prefers-reduced-motion:no-preference){button{transition:border-color .15s}}
+.layout{grid-template-columns:minmax(0,1fr) minmax(320px,365px)}.plot canvas{height:clamp(310px,52vh,620px)}.commands{display:grid;gap:12px}.commands section{border-top:1px solid var(--edge);padding-top:12px}.commands h3{margin-bottom:8px}.commands .flag{padding:4px 7px}.commands .row{gap:7px}.commands input[type=checkbox]{min-height:auto;accent-color:var(--accent);margin:0}.commands input[type=number]{width:96px}.commands .danger{border-color:#a95f65;color:#ffc6c6}.commands .feedback{min-height:2.7em;color:var(--muted);overflow-wrap:anywhere}.feedback[data-tone=bad]{color:var(--red)}.feedback[data-tone=good]{color:var(--accent)}
+.signals{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));column-gap:14px}.signal>label{font-size:13px}.trace-key{padding:7px 9px 3px}.trace-key span{font-size:12px;color:var(--muted)}#signalDialog{width:min(620px,calc(100vw - 24px))}#signalDialog .results{max-height:45vh;margin:8px 0}#signalDialog .results button[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}#signalDialog h2{margin-bottom:8px}
+@media(max-width:850px){.layout{grid-template-columns:1fr}}
+:root[data-theme=dark]{color-scheme:dark;--bg:#111a1e;--panel:#18242a;--inside:#111a1e;--edge:#2d3d44;--text:#e4edef;--muted:#a0b2b9;--accent:#62c9b3;--soft:#213d38;--shadow:0 8px 26px #0002;--red:#ffafb9;--red-soft:#3b2630;--amber:#f1c47b;--amber-soft:#382f24;--button-text:#10241f}
+.primary{color:var(--button-text)}.popup{background:var(--panel)}.commands .danger{color:var(--red)}.rs-guide{margin:0 0 15px}.rs-guide summary,.commands summary{cursor:pointer;font-weight:650}.rs-guide dl{display:grid;grid-template-columns:max-content 1fr;gap:5px 14px;margin-bottom:0}.rs-guide dd{margin:0;color:var(--muted)}.commands details>.row,.commands details>.hint{margin-top:8px}.io-list{display:grid;gap:8px}.io-list h4{margin:0;font-size:12px;color:var(--muted)}@media(max-width:570px){.rs-guide dl{display:block}.rs-guide dd{margin:0 0 9px}}
+.topbar-button{display:inline-grid;place-items:center;width:38px;height:38px;padding:0;background:var(--bg);border:1px solid var(--edge);border-radius:7px;color:var(--text);font-size:18px;font-weight:650;line-height:1;text-decoration:none}.topbar-button:hover{border-color:var(--accent)}.theme{font-size:21px}.author-tools{font-size:12px;font-weight:750;letter-spacing:-.5px}.author-arrow{font-size:10px;margin-left:1px}.app-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;margin-bottom:14px}.app-heading .row{flex-wrap:nowrap;gap:clamp(6px,1vw,10px)}.app-heading small{font-size:13px}.panel{box-shadow:var(--shadow)}main{max-width:1440px;padding-inline:clamp(14px,3vw,40px)}
+.operator-panel{gap:15px}.operator-panel .arm-toggle{font-size:13px;color:var(--muted)}#frequencyForm{display:grid;grid-template-columns:1fr 1fr;gap:9px}#frequencyForm label{display:grid;gap:5px;color:var(--muted);font-size:12px;font-weight:650}#frequencyForm input,#frequencyForm select{width:100%;min-height:43px;color:var(--text);font-size:16px;font-weight:650}#setFrequency{grid-column:1/-1;text-align:center}.drive-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.drive-actions button{display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;font-size:15px}.drive-actions .danger{border-color:var(--red);background:var(--red-soft)}.command-note{font-size:12px}.commands .feedback{min-height:0;font-size:13px}.commands .feedback:empty{display:none}
+.event-list{display:grid;gap:7px;margin-top:10px}.event-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1px solid var(--edge);background:var(--inside)}.event-row strong,.event-row output{display:block}.event-row output{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.event-row[data-active=true][data-kind=fault]{background:var(--red-soft);color:var(--red);border-color:var(--red)}.event-row[data-active=true][data-kind=warning]{background:var(--amber-soft);color:var(--amber);border-color:var(--amber)}.event-row[data-active=true] output{color:inherit}.event-row button{min-height:30px;font-size:12px}
+.advanced-controls{border-top:1px solid var(--edge);padding-top:12px}.advanced-controls form{margin-top:10px}.advanced-controls label{font-size:13px}
+.signal .signal-name{min-width:0;flex:1;overflow-wrap:anywhere}.signal-settings{margin:4px 0 7px}.signal-settings summary{width:fit-content;color:var(--muted);font-size:12px;cursor:pointer}.signal-scale{border:0;padding:0;margin:4px 0 7px;min-width:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.signal-scale label{display:grid;gap:2px;color:var(--muted);font-size:11px}.signal-scale input{width:100%;min-width:0;padding:4px 5px;font-size:12px}.signal-scale-error{margin:0 0 6px;color:var(--red);font-size:12px}.signal-group{grid-column:1/-1;margin:6px 0 1px;font-size:13px;color:var(--muted)}
+.plot-viewport{position:relative;overflow-x:auto}.plot-viewport canvas{display:block}.signal-scale .axis-option{display:flex;align-items:center;gap:6px;font-size:12px}.signal-scale .axis-option input{width:auto;margin:0}
+.drive-parameters{margin-top:14px}.drive-parameters>summary{font-size:17px;font-weight:750}.parameter-tools{margin:12px 0;gap:10px}.parameter-tools label{display:grid;gap:3px}.parameter-tools input{width:10em}.parameter-table{overflow-x:auto;max-height:44rem;margin-top:8px}.parameter-table table{width:100%;border-collapse:collapse;min-width:650px}.parameter-table th,.parameter-table td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--edge)}.parameter-table th{position:sticky;top:0;background:var(--panel)}.parameter-table td:nth-child(3){font-variant-numeric:tabular-nums}.parameter-table input,.parameter-table select{width:9.5em;max-width:100%}.parameter-table td:last-child{width:1%;white-space:nowrap}.drive-parameters .feedback{margin:6px 0}
+.chart-head{display:grid;justify-content:stretch;gap:8px}.chart-head .row{justify-content:flex-start}.poll-panel{border:1px solid var(--edge);border-radius:8px;padding:8px 10px;margin:10px 0;display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap}.poll-panel h3{font-size:13px}.poll-panel .row{gap:7px;margin:0}.poll-panel label{display:flex;align-items:center;gap:6px;font-size:12px}.poll-panel label[hidden]{display:none}.poll-panel input{width:6em}.poll-panel output{font-variant-numeric:tabular-nums}
+.parameter-groups{display:grid;gap:8px}.parameter-group{border:1px solid var(--edge);border-radius:var(--radius,8px);padding:9px 12px}.parameter-group>summary{font-weight:650;cursor:pointer}.parameter-group .parameter-tools{margin:8px 0}.parameter-group .parameter-table{margin-top:0}.parameter-table tr:focus{outline:2px solid var(--accent);outline-offset:-2px}
+#parameterLookup{display:grid;grid-template-columns:minmax(0,15rem) max-content;align-items:end;gap:5px 10px;justify-content:start}
+#parameterLookup label,#parameterLookup small{grid-column:1/-1}
+#parameterLookup label{font-weight:600}
+#parameterLookup input,#parameterLookup button{width:100%;min-width:0;height:42px;margin:0}
+#parameterScanStatus:empty{display:none}
+@media(max-width:480px){#parameterLookup{grid-template-columns:minmax(0,1fr)}#parameterLookup button{justify-self:start;width:auto;max-width:100%}}
+#parameterMapDifferences ul{max-height:20rem;overflow:auto;padding-inline-start:24px}#parameterMapDifferences li{margin-block:4px}
+</style>
+</head>
+<body>
+<main>
+  <header class="app-heading">
+    <div><h1>MFC710 RS Monitor</h1><small>Моніторинг і керування TWERD MFC710 · Modbus RTU</small></div>
+    <div class="row">
+      <button id="help" class="topbar-button" type="button" title="Довідка" aria-label="Довідка" aria-haspopup="dialog" aria-controls="helpDialog">?</button>
+      <a id="portal-home" class="topbar-button author-tools" href="https://roman-khoroshko-tech.github.io/" title="Інші інструменти автора" aria-label="Інші інструменти автора"><span aria-hidden="true">RK<span class="author-arrow">↗</span></span></a>
+      <button id="theme" class="topbar-button theme" type="button" aria-label="Увімкнути темну тему" aria-pressed="false">◐</button>
+    </div>
+  </header>
+  <section class="panel connection" aria-label="Підключення">
+    <div class="row">
+      <label>Швидкість, біт/с<select id="baud"><option>9600</option><option>19200</option><option>38400</option><option>57600</option></select></label>
+      <label>Адреса ПЧ<input id="address" type="number" value="12" min="1" max="247" step="1" required></label>
+      <button id="connect" class="primary" type="button">Підключити</button>
+      <button id="disconnect" type="button" disabled>Відключити</button>
+      <button id="demo" type="button">Демо</button>
+    </div>
+    <div class="health">
+      <span id="status" class="status" role="status">Відключено</span>
+      <small id="last" class="last">Останнє оновлення –</small>
+    </div>
+    <div id="detail" class="notice muted"></div>
+  </section>
+  <details class="panel rs-guide">
+    <summary>Налаштування MFC710 для керування через RS</summary>
+    <dl>
+      <dt>Підключення</dt><dd><b>4.8</b> – швидкість, <b>4.9</b> – адреса Modbus. У моніторі введи ті самі значення.</dd>
+      <dt>Дозвіл RS</dt><dd><b>4.7</b> – вибери потрібний сигнал дозволу. <b>007 Sw.On</b> означає постійний дозвіл; застосовуй його лише там, де це передбачено схемою керування.</dd>
+      <dt>Пуск / стоп</dt><dd><b>2.4 = 032</b> для A або <b>2.5 = 032</b> для B.</dd>
+      <dt>Частота й напрямок</dt><dd><b>2.2 = 139</b> для A або <b>2.3 = 139</b> для B. Перевір режим <b>1.20</b>, межі <b>2.11 / 2.12</b> і <b>1.40</b> та дозволений напрямок <b>1.65</b>.</dd>
+      <dt>Задатчик ПІД</dt><dd><b>2.60 = 142</b>. Для керування частотою від ПІД – <b>2.2 = 137</b> або <b>2.3 = 137</b> та налаштований вхід зворотного зв’язку <b>2.61</b>.</dd>
+      <dt>Перемикання A/B</dt><dd>На OP‑11 обери для <b>2.1</b> вільну <b>PCH.384–447</b> (за потреби <b>4.6 = 001 Full PCH</b>). Монітор перевіряє призначення. Для перемикання з монітора в обох каналах має бути вибрано пуск через RS (<b>2.4 = 2.5 = 032</b>).</dd>
+      <dt>Стоп і втрата RS</dt><dd>Перевір спосіб штатної зупинки <b>1.64</b>, реакцію і час втрати зв’язку <b>3.60 / 3.61</b>. Скидання аварії, блокування й примусове керування через RS потребують дозволу <b>4.7</b>.</dd>
+    </dl>
+    <p class="hint">Читання та доступні зміни параметрів – у панелі «Параметри ПЧ» під трендами.</p>
+  </details>
+  <div class="layout">
+    <section class="panel" aria-labelledby="chartTitle">
+      <div class="chart-head">
+        <h2 id="chartTitle">Тренди</h2>
+        <div class="row">
+          <button id="chooseSignals" type="button" class="primary">Вибрати сигнали</button>
+          <label>Вікно <select id="window"><option value="30">30 с</option><option value="60" selected>1 хв</option><option value="300">5 хв</option><option value="900">15 хв</option></select></label>
+          <button id="pause" type="button" aria-pressed="false">Пауза перегляду</button>
+          <button id="clear" type="button" disabled>Очистити</button>
+          <button id="csv" type="button" disabled>CSV ↓</button>
+        </div>
+      </div>
+      <section class="poll-panel" aria-labelledby="pollTitle">
+        <h3 id="pollTitle">Оновлення даних</h3>
+        <div class="row">
+          <label>
+            <select id="pollMode" aria-label="Режим оновлення"><option value="auto">Автоматично</option><option value="manual">Вручну</option></select>
+          </label>
+          <label id="manualPoll" hidden>Інтервал, мс
+            <input id="period" type="number" value="500" step="1" aria-describedby="pollMinimum"
+              inputmode="numeric" disabled>
+          </label>
+        </div>
+        <small id="pollMinimum" class="hint"></small>
+        <output id="pollActual" class="hint">Фактичний інтервал – —</output>
+      </section>
+      <div id="charts" class="charts"></div>
+      <div id="signals" class="signals" aria-label="Вибрані сигнали"></div>
+    <p id="retention" class="hint">Історія поточного сеансу зберігається в пам’яті вкладки.</p>
+    </section>
+    <aside class="panel commands operator-panel" aria-labelledby="controlsTitle">
+      <h2 id="controlsTitle">Керування ПЧ</h2>
+      <label class="row arm-toggle"><input id="arm" type="checkbox" disabled> Дозволити команди з браузера</label>
+      <form id="frequencyForm" class="row">
+        <label><span>Завдання, <span id="driveUnit">Гц</span></span><input id="frequency" type="number" required min="0" max="500" step="0.1" placeholder="0,0" disabled></label>
+        <label>Напрямок <select id="direction" disabled><option value="1">Вправо</option><option value="-1">Вліво</option></select></label>
+        <button id="setFrequency" type="submit" disabled>Передати завдання</button>
+      </form>
+      <div class="drive-actions">
+        <button id="startDrive" class="primary" type="button" disabled><span aria-hidden="true">▶</span> Пуск</button>
+        <button id="stopDrive" class="danger" type="button" disabled><span aria-hidden="true">■</span> Стоп</button>
+      </div>
+      <p id="stopContext" class="hint" hidden></p>
+      <div id="commandContext" class="muted command-note"></div>
+      <p id="commandResult" class="feedback" role="status"></p>
+      <section aria-labelledby="stateTitle">
+        <h3 id="stateTitle">Стан перетворювача частоти</h3>
+        <div id="flags" class="row" aria-label="Стани ПЧ"></div>
+        <p id="controlSources" class="hint"></p>
+        <p id="liveDirection" class="hint"></p>
+        <p id="modeWord" class="hint" hidden></p>
+        <div class="event-list">
+          <div id="faultRow" class="event-row" data-kind="fault">
+            <div><strong><span aria-hidden="true">⨯</span> Аварія</strong><output id="faultDescription">Немає даних</output></div>
+            <button id="resetFault" type="button" disabled>Скинути</button>
+          </div>
+          <div id="warningRow" class="event-row" data-kind="warning">
+            <div><strong><span aria-hidden="true">△</span> Попередження</strong><output id="warningDescription">Немає даних</output></div>
+          </div>
+        </div>
+      </section>
+      <details class="advanced-controls">
+        <summary>Додаткове керування</summary>
+        <form id="pidForm" class="row">
+          <label>Задатчик ПІД, % <input id="pid" type="number" required min="0" max="100" step="0.1" disabled></label>
+          <button id="setPid" type="submit" disabled>Передати ПІД</button>
+        </form>
+        <div class="row"><button id="switchChannel" type="button" disabled>Перемкнути A/B</button></div>
+        <div class="row">
+          <label>Блокування <select id="blockMode" disabled><option value="4096">За налаштуванням</option><option value="8192">RAMP</option><option value="16384">Вибігом</option></select></label>
+          <button id="setBlock" class="danger" type="button" disabled>Заблокувати</button>
+          <button id="clearBlock" type="button" disabled>Зняти RS-блокування</button>
+        </div>
+        <p id="unblockContext" class="hint" hidden></p>
+        <p id="pidContext" class="hint"></p>
+        <button id="demoFault" type="button" hidden>Імітувати аварію</button>
+      </details>
+      <section aria-labelledby="inputsTitle">
+        <h3 id="inputsTitle">Входи та виходи</h3>
+        <div class="io-list">
+          <h4>Дискретні входи</h4><div id="digitalInputs" class="row"></div>
+          <h4>Аналогові входи</h4><div id="analogInputs" class="row"></div>
+          <h4>Дискретні виходи (реле)</h4><div id="digitalOutputs" class="row"></div>
+          <h4>Аналогові виходи</h4><div id="analogOutputs" class="row"></div>
+        </div>
+      </section>
+    </aside>
+  </div>
+  <details id="driveParameters" class="panel drive-parameters">
+    <summary>Параметри ПЧ</summary>
+    <form class="parameter-tools" id="parameterLookup">
+      <label for="parameterNumber">Точний номер параметра</label>
+      <input id="parameterNumber" type="text" autocomplete="off" placeholder="Наприклад 2.110"
+        pattern="[0-6][.][0-9]{1,3}" aria-describedby="parameterLookupHint" required>
+      <button type="submit">Знайти параметр</button>
+      <small id="parameterLookupHint">Номери від 0.1 до 6.255. Можна запитати параметр поза списком.</small>
+    </form>
+    <p class="hint">Редагування доступне після зупинки ПЧ, зняття команди пуску й увімкнення «Дозволити команди з браузера». Параметри без підтвердженого формату запису доступні для читання.</p>
+    <p id="parameterStatus" class="feedback" role="status"></p>
+    <p id="parameterScanStatus" class="feedback" role="status"></p>
+    <div class="row parameter-tools">
+      <button id="stopParameterScan" type="button" hidden>Зупинити перевірку групи</button>
+      <button id="writeAllParameters" class="primary" type="button" disabled>Записати всі параметри</button>
+      <button id="cancelParameterBatch" type="button" hidden>Зупинити запис</button>
+      <small id="parameterDraftCount" class="hint"></small>
+    </div>
+    <details class="parameter-group">
+      <summary>Карта параметрування</summary>
+      <div class="row parameter-tools">
+        <button id="readParameterMap" type="button">Зчитати карту з ПЧ</button>
+        <button id="stopParameterMap" type="button" hidden>Зупинити зчитування</button>
+        <button id="importParameterMap" type="button">Відкрити карту JSON</button>
+        <input id="parameterMapFile" type="file" accept=".json,application/json" hidden>
+      </div>
+      <div class="row parameter-tools">
+        <button id="saveParameterMap" type="button" disabled>Скачати JSON</button>
+        <button id="saveWordMap" type="button" disabled>Скачати звіт Word</button>
+        <button id="saveReadableMap" type="button" disabled>Скачати CSV для Excel</button>
+        <button id="compareParameterMap" type="button" disabled>Порівняти з ПЧ</button>
+        <button id="restoreParameterMap" type="button" disabled>Записати відмінності</button>
+        <button id="savePartialMap" type="button" hidden>Скачати часткову карту JSON</button>
+      </div>
+      <div class="row parameter-tools">
+        <label>Виконання підключеного ПЧ за шильдиком
+          <select id="parameterMapVariant"><option value="">Не вказано</option><option value="400">400 В</option><option value="500">500 В</option><option value="690">690 В</option></select>
+        </label>
+      </div>
+      <p id="parameterMapInfo" class="hint"></p>
+      <p id="parameterCompatibility" class="hint"></p>
+      <details id="parameterMapDifferences" hidden><summary>Відмінності параметрів</summary><ul id="parameterMapDiffList"></ul></details>
+      <p id="parameterMapStatus" class="feedback" role="status"></p>
+    </details>
+    <div id="parameterGroups" class="parameter-groups"></div>
+  </details>
+  <details id="forcePanel" class="panel commands" style="margin-top:14px">
+    <summary>Примусове керування RS</summary>
+    <div class="row">
+      <label class="row"><input id="forceStart" type="checkbox" disabled> Пуск / стоп</label>
+      <label class="row"><input id="forceSpeed" type="checkbox" disabled> Частота / швидкість</label>
+      <label class="row"><input id="forcePid" type="checkbox" disabled> Задатчик ПІД</label>
+      <button id="applyForce" type="button" disabled>Застосувати</button>
+    </div>
+    <p id="forceState" class="hint"></p>
+    <p class="hint">Тестове заміщення DI ігнорує фізичні сигнали. Режим доступний лише за активного блокування RS та зупиненого привода. Для запуску спочатку поверни фізичні входи, потім зніми RS-блокування.</p>
+    <div id="forceInputs" class="row"></div>
+    <div class="row"><button id="applyInputs" type="button" disabled>Імітувати DI</button><button id="restoreInputs" type="button" disabled>Повернути фізичні DI</button></div>
+  </details>
+</main>
+<dialog id="parameterBatchDialog" aria-labelledby="parameterBatchTitle">
+  <form method="dialog">
+    <h2 id="parameterBatchTitle">Підтвердити запис параметрів</h2>
+    <p>Переконайся, що команди пуску знято з усіх джерел.</p>
+    <p id="parameterBatchSummary" class="hint"></p>
+    <ol id="parameterBatchReview" style="max-height:45vh;overflow:auto"></ol>
+    <div class="row"><button value="cancel" autofocus>Скасувати</button><button id="confirmParameterBatch" class="primary" type="button">Записати</button></div>
+  </form>
+</dialog>
+<dialog id="helpDialog">
+  <h2>Підключення й перша перевірка</h2>
+  <ol>
+    <li>Відкрий файл у настільному Chrome або Edge. USB–RS‑485 адаптер має бути доступний у Windows як COM-порт.</li>
+    <li>Введи швидкість із параметра 4.8 та адресу з 4.9. Формат 8 біт, без парності, 2 стоп-біти (8N2). Натисни «Підключити» й вибери порт.</li>
+    <li>Монітор прочитає регістр 2006, щоб перевірити відповідь ПЧ. Звір «Робота» та інші індикатори з OP‑11. Прочитай 40004 на початковому графіку «Вихідна частота» і звір з параметром 0.4 на OP‑11. Для сирого слова встановлюй множник і знак лише після підтвердження формату; звір у кількох сталих точках.</li>
+  </ol>
+  <h3>Керування через RS</h3>
+  <p>Монітор перевіряє дозвіл RS і активні джерела за станом ПЧ. Пуск і стоп змінюють біт 15 регістра 2000, скидання формує імпульс бітом 1. Блокування використовує біти 12–14. У 2001 записується завдання зі знаком: Гц для U/f, об/хв для векторного режиму. Зміна напрямку доступна після зупинки. Задатчик ПІД записується в 2002. Перемикання A/B записує 0 або 1 лише в RS-точку, вже призначену параметром 2.1. Підтвердження запису звіряється окремим читанням.</p>
+  <p>Кнопка «Стоп» передає штатну команду RS. Для аварійної зупинки використовуй штатний контур шафи. Перед стендовою перевіркою узгодь реакцію ПЧ на втрату RS за 3.60/3.61. Скидання аварії виконуй після усунення причини й зняття команди пуску.</p>
+  <h3>Карта параметрування</h3>
+  <p>JSON містить зчитані слова груп 1–6 і версію ПЗ. Word містить звіт за групами, CSV – таблицю для Excel. Після відкриття JSON порівняй карту з підключеним ПЧ й переглянь список змін. Записуються лише відмінні параметри з підтримуваним форматом запису. Звіт про зчитування відокремлює відсутні регістри від помилок обміну.</p>
+  <h3>Регістр та шкала</h3>
+  <p>У налаштуваннях сигналу вимкни «Автомасштаб», щоб зафіксувати межі графіка. «Окрема вісь Y зліва» показує поділки кольором відповідної кривої. Для PCH з визначеним форматом застосовується масштаб з додатка A. Для програмованих точок і копій сигналів зі змінним форматом можна вручну задати множник і одиницю.</p>
+  <p>Адреси в кадрі FC03 беруться з карти MFC710. Приклади 2006, 1151 і 40004 передаються як числові адреси, без віднімання 1 або 40001. Якщо ПЧ відповідає винятком, його код і адресу видно під статусом. Стани готовності, роботи, аварії й попередження беруться з PCH.061–063 та PCH.065. Коди подій читаються з PCH.206 і PCH.207, описи – за таблицею 6.1.</p>
+  <p>У «Налаштуваннях шкали» кожного сигналу межі задають видимий діапазон, а множник перераховує покази. Для сирих слів вихідної частоти та уставки за замовчуванням використовується 0,1 Гц за відлік (500 → 50 Гц). Якщо показ OP‑11 відрізняється, зміни множник. Якщо для параметра задано множник групи 0, він замінює автоматичний множник сигналу.</p>
+  <p>Для групи 0 додаток C визначає фізичні одиниці, а формат сирого слова для цих регістрів не уточнений. Множник і знак можна задати вручну після звірки. Після зміни формату історія сеансу очищується, щоб не змішувати шкали. У демо фізичні одиниці задає модель симуляції.</p>
+  <p>Автоматичний інтервал фіксований для поточного набору сигналів та швидкості RS‑485. Розрахунок враховує блоки регістрів і запас на відповідь ПЧ. Тайм-аути, запис команд і зчитування параметрів можуть затримати оновлення. Якщо значення не отримано, на графіку буде розрив. Історія в пам’яті обмежена 12 000 циклами.</p>
+  <h3>Джерела</h3>
+  <p><a href="https://twerd.pl/wp-content/uploads/2025/02/dtr-mfc710-op11-en.pdf" target="_blank" rel="noopener">Інструкція TWERD MFC710 з панеллю OP‑11, редакція 8.1 (PDF, англійською)</a>. Розділ 13 – зв’язок RS, додаток A – точки PCH, додаток B – функції ПЛК, додаток C – параметри ПЧ.</p>
+  <p>Версія програми 0.1.0-beta.1</p>
+  <form method="dialog"><button>Закрити</button></form>
+</dialog>
+<dialog id="signalDialog">
+  <h2>Сигнали на графіку</h2>
+  <div class="row"><button id="preset" type="button">Насос / ПІД</button><button id="scale" type="button">Масштаби групи 0</button><small id="chosenCount"></small></div>
+  <label for="search" class="hint">Пошук за номером PCH, параметра або назвою</label>
+  <input class="search" id="search" type="search" placeholder="Наприклад PCH.151, 0.4 або струм" autocomplete="off">
+  <div id="results" class="results" aria-label="Результати пошуку"></div>
+  <form method="dialog"><button class="primary">Готово</button></form>
+</dialog>
+<dialog id="scaleDialog">
+  <h2>Масштаби регістрів групи 0</h2>
+  <p>Порожній множник залишає сире 16-бітне слово. Для підтвердженого масштабу введи множник у фізичних одиницях на один відлік і вибери тип числа. Застосування змін очищає історію. Налаштування діють у поточній вкладці.</p>
+  <table><thead><tr><th>Сигнал</th><th>Множник</th><th>Тип</th></tr></thead><tbody id="scaleRows"></tbody></table>
+  <form id="scaleForm" method="dialog"><button value="cancel">Скасувати</button> <button id="applyScale" type="button" class="primary">Застосувати</button></form>
+</dialog>
+<script>
+'use strict';
+const documentedNames = /* CATALOG_START */ {
+  "0": "Sw.Off (Вимкни)",
+  "1": "In.C1 (Вх.C1)",
+  "2": "In.C2 (Вх.C2)",
+  "3": "In.C3 (Вх.C3)",
+  "4": "In.C4 (Вх.C4)",
+  "5": "In.C5 (Вх.C5)",
+  "6": "In.C6 (Вх.C6)",
+  "7": "Sw.On (Ввімкни)",
+  "8": "F1",
+  "9": "F2",
+  "10": "F3",
+  "20": "Err.A0 (Аварія Вх.А0)",
+  "21": "Err.A1 (Аварія Вх.А1)",
+  "22": "Err.A2 (Аварія Вх.А2)",
+  "30": "Dig. Inp. St",
+  "31": "Keyboard S.",
+  "32": "RS St.",
+  "33": "Dig.Inp. Dir",
+  "34": "Keyb. Dir",
+  "35": "Dir. (Знак задатчика) Знак задатчика. (L = задатчик позитивний, H = задатчик негативний)",
+  "36": "f.Stop",
+  "37": "Start",
+  "38": "Dir.",
+  "39": "A/B Ct",
+  "40": "Ena.RS",
+  "41": "OpPerm",
+  "42": "Fconst",
+  "59": "Pump 6",
+  "60": "Disabled (Неактив.)",
+  "61": "RUN (РОБОТА)",
+  "62": "READY (ГОТОВИЙ)",
+  "63": "FAILURE (АВАРІЯ)",
+  "64": "NO FAILURE",
+  "65": "WARNING",
+  "66": "WARN+FAIL.",
+  "67": "Стан сушіння",
+  "68": "Freq. thrs.1 (Поріг 1)",
+  "69": "Freq. thrs.1 (Поріг 2)",
+  "70": "Freq. ref. (Задана f)",
+  "71": "Temp. thrs.",
+  "72": "Wrn.An.In",
+  "73": "Block",
+  "74": "I limit",
+  "75": "Brake",
+  "76": "Pump 1 (НАСОС 1)",
+  "77": "Pump 2 (НАСОС 2)",
+  "78": "Pump 3 (НАСОС 3)",
+  "79": "Pump 4 (НАСОС 4)",
+  "80": "Pump 5 (НАСОС 5)",
+  "81": "Relay1 (Реле 1)",
+  "82": "Relay2 (Реле 2)",
+  "83": "Relay3 (Реле 3)",
+  "84": "Relay4 (Реле 4)",
+  "90": "c.50ms (Таймер 50 мс)",
+  "91": "clk.1s (Таймер 1 с)",
+  "92": "c.1min(Таймер 1хв)",
+  "93": "clk.1h (Таймер 1год)",
+  "125": "RSTout",
+  "126": "NO (НУЛЬ)",
+  "127": "YES (НЕ НУЛЬ)",
+  "133": "Keyb. ref. (Задатчик",
+  "134": "In.A0 (Вхід A0)",
+  "135": "In.A1 (Вхід A1)",
+  "136": "In.A2 (Вхід A2)",
+  "137": "OutPID",
+  "138": "MotPot (Зад. Мотопот.) Задатчик мотопотенціометра. Роздільна здатність 0.1 %, діапазон 0...1000 = 0.0...100.0 %",
+  "139": "RS ref. (Задатчик RS)",
+  "140": "MP-AUX",
+  "141": "MP-PID (Мотопот. ПІД) Задатчик мотопотенціометра для ПІД-регулятора",
+  "142": "RS PID (Задатчик ПІД Значення задатчика ПІД-регулятора, що передається зв'язком RS. Дозвіл 0.1 %.",
+  "143": "Keyb.P",
+  "144": "Reference A0",
+  "145": "Reference A1",
+  "146": "Reference A2",
+  "147": "100.0%",
+  "148": "Reference RC",
+  "149": "|rpm|",
+  "150": "rpm",
+  "151": "f output",
+  "152": "Current",
+  "153": "|Torque|",
+  "154": "Torque",
+  "155": "Power",
+  "156": "U.Motor",
+  "157": "PIDerr",
+  "158": "RefPID",
+  "159": "T.Ths. (Температура",
+  "160": "In.PID (Вхід ПІД)",
+  "161": "R.Pump",
+  "162": "n.proc",
+  "163": "RefTrq",
+  "164": "Ref.A",
+  "165": "Ref.B",
+  "166": "O. ref",
+  "167": "Ref.",
+  "168": "fConst1 (f пост.1)",
+  "169": "fConst2 (f пост.2)",
+  "170": "fConst3 (f пост.3)",
+  "171": "fConst4 (f пост.4)",
+  "172": "fConst5 (f пост.5)",
+  "173": "fConst6 (f пост.6)",
+  "174": "fConst7 (f пост.7)",
+  "175": "Last.f",
+  "176": "f% ABS",
+  "177": "En.CNT",
+  "178": "UR1 (ЗС1)",
+  "179": "UR2 (ЗС2)",
+  "180": "UR3 (ЗС3)",
+  "181": "UR4 (ЗС4)",
+  "182": "fA% fn (fзA_відсоток)",
+  "183": "fB% fn (fзB_відсоток)",
+  "184": "fZ% fn (fз_ відсоток)",
+  "185": "f.Ramp",
+  "186": "fZ%(1) / fз% (1)",
+  "187": "fZ%(2) / Fз% (2)",
+  "188": "fZ.Min",
+  "189": "FZ.Max",
+  "190": "RTCmin",
+  "191": "RTCdoy",
+  "192": "RTCdom",
+  "193": "pump",
+  "194": "motor (двиг.)",
+  "195": "Час до кінця сушіння",
+  "198": "r.n% (у.n%)",
+  "199": "|r.n%| (|у.n%|)",
+  "206": "f.code (код ав.)",
+  "207": "w.code (код попер.)",
+  "218": "d wind (d нам.)",
+  "222": "f InC3 (f Вх.C3)",
+  "223": "f InC4 (f Вх.C4)",
+  "224": "f InC5 (f Вх.C5)",
+  "225": "f InC6 (f Вх.C6)",
+  "228": "outPIn (reg n)",
+  "229": "T ref (ref.m.)",
+  "238": "ENCpos",
+  "239": "ENCref",
+  "240": "ENCdif",
+  "256": "Вихід ПЛК · BL. 1",
+  "257": "Вихід ПЛК · BL. 2",
+  "304": "Секвенсор · Seq. 1",
+  "305": "Секвенсор · Seq. 2",
+  "312": "Seq.N (СЕКВЕНСОР",
+  "313": "Mux 1",
+  "314": "Mux 2",
+  "315": "CSU (Вихід БФК)",
+  "320": "Постійна величина · CO. 1",
+  "321": "Постійна величина · CO. 2",
+  "258": "Вихід ПЛК · BL. 3",
+  "259": "Вихід ПЛК · BL. 4",
+  "260": "Вихід ПЛК · BL. 5",
+  "261": "Вихід ПЛК · BL. 6",
+  "262": "Вихід ПЛК · BL. 7",
+  "263": "Вихід ПЛК · BL. 8",
+  "264": "Вихід ПЛК · BL. 9",
+  "265": "Вихід ПЛК · BL. 10",
+  "266": "Вихід ПЛК · BL. 11",
+  "267": "Вихід ПЛК · BL. 12",
+  "268": "Вихід ПЛК · BL. 13",
+  "269": "Вихід ПЛК · BL. 14",
+  "270": "Вихід ПЛК · BL. 15",
+  "271": "Вихід ПЛК · BL. 16",
+  "272": "Вихід ПЛК · BL. 17",
+  "273": "Вихід ПЛК · BL. 18",
+  "274": "Вихід ПЛК · BL. 19",
+  "275": "Вихід ПЛК · BL. 20",
+  "276": "Вихід ПЛК · BL. 21",
+  "277": "Вихід ПЛК · BL. 22",
+  "278": "Вихід ПЛК · BL. 23",
+  "279": "Вихід ПЛК · BL. 24",
+  "280": "Вихід ПЛК · BL. 25",
+  "281": "Вихід ПЛК · BL. 26",
+  "282": "Вихід ПЛК · BL. 27",
+  "283": "Вихід ПЛК · BL. 28",
+  "284": "Вихід ПЛК · BL. 29",
+  "285": "Вихід ПЛК · BL. 30",
+  "286": "Вихід ПЛК · BL. 31",
+  "287": "Вихід ПЛК · BL. 32",
+  "288": "Вихід ПЛК · BL. 33",
+  "289": "Вихід ПЛК · BL. 34",
+  "290": "Вихід ПЛК · BL. 35",
+  "291": "Вихід ПЛК · BL. 36",
+  "292": "Вихід ПЛК · BL. 37",
+  "293": "Вихід ПЛК · BL. 38",
+  "294": "Вихід ПЛК · BL. 39",
+  "295": "Вихід ПЛК · BL. 40",
+  "296": "Вихід ПЛК · BL. 41",
+  "297": "Вихід ПЛК · BL. 42",
+  "298": "Вихід ПЛК · BL. 43",
+  "299": "Вихід ПЛК · BL. 44",
+  "300": "Вихід ПЛК · BL. 45",
+  "301": "Вихід ПЛК · BL. 46",
+  "302": "Вихід ПЛК · BL. 47",
+  "303": "Вихід ПЛК · BL. 48",
+  "306": "Секвенсор · Seq. 3",
+  "307": "Секвенсор · Seq. 4",
+  "308": "Секвенсор · Seq. 5",
+  "309": "Секвенсор · Seq. 6",
+  "310": "Секвенсор · Seq. 7",
+  "311": "Секвенсор · Seq. 8",
+  "322": "Постійна величина · CO. 3",
+  "323": "Постійна величина · CO. 4",
+  "324": "Постійна величина · CO. 5",
+  "325": "Постійна величина · CO. 6",
+  "326": "Постійна величина · CO. 7",
+  "327": "Постійна величина · CO. 8",
+  "328": "Постійна величина · CO. 9",
+  "329": "Постійна величина · CO. 10",
+  "330": "Постійна величина · CO. 11",
+  "331": "Постійна величина · CO. 12",
+  "332": "Постійна величина · CO. 13",
+  "333": "Постійна величина · CO. 14",
+  "334": "Постійна величина · CO. 15",
+  "335": "Постійна величина · CO. 16",
+  "336": "Постійна величина · CO. 17",
+  "337": "Постійна величина · CO. 18",
+  "338": "Постійна величина · CO. 19",
+  "339": "Постійна величина · CO. 20",
+  "340": "Постійна величина · CO. 21",
+  "341": "Постійна величина · CO. 22",
+  "342": "Постійна величина · CO. 23",
+  "343": "Постійна величина · CO. 24",
+  "384": "Канал RS · PCH RS 1",
+  "385": "Канал RS · PCH RS 2",
+  "386": "Канал RS · PCH RS 3",
+  "387": "Канал RS · PCH RS 4",
+  "388": "Канал RS · PCH RS 5",
+  "389": "Канал RS · PCH RS 6",
+  "390": "Канал RS · PCH RS 7",
+  "391": "Канал RS · PCH RS 8",
+  "392": "Канал RS · PCH RS 9",
+  "393": "Канал RS · PCH RS 10",
+  "394": "Канал RS · PCH RS 11",
+  "395": "Канал RS · PCH RS 12",
+  "396": "Канал RS · PCH RS 13",
+  "397": "Канал RS · PCH RS 14",
+  "398": "Канал RS · PCH RS 15",
+  "399": "Канал RS · PCH RS 16",
+  "400": "Канал RS · PCH RS 17",
+  "401": "Канал RS · PCH RS 18",
+  "402": "Канал RS · PCH RS 19",
+  "403": "Канал RS · PCH RS 20",
+  "404": "Канал RS · PCH RS 21",
+  "405": "Канал RS · PCH RS 22",
+  "406": "Канал RS · PCH RS 23",
+  "407": "Канал RS · PCH RS 24",
+  "408": "Канал RS · PCH RS 25",
+  "409": "Канал RS · PCH RS 26",
+  "410": "Канал RS · PCH RS 27",
+  "411": "Канал RS · PCH RS 28",
+  "412": "Канал RS · PCH RS 29",
+  "413": "Канал RS · PCH RS 30",
+  "414": "Канал RS · PCH RS 31",
+  "415": "Канал RS · PCH RS 32",
+  "416": "Канал RS · PCH RS 33",
+  "417": "Канал RS · PCH RS 34",
+  "418": "Канал RS · PCH RS 35",
+  "419": "Канал RS · PCH RS 36",
+  "420": "Канал RS · PCH RS 37",
+  "421": "Канал RS · PCH RS 38",
+  "422": "Канал RS · PCH RS 39",
+  "423": "Канал RS · PCH RS 40",
+  "424": "Канал RS · PCH RS 41",
+  "425": "Канал RS · PCH RS 42",
+  "426": "Канал RS · PCH RS 43",
+  "427": "Канал RS · PCH RS 44",
+  "428": "Канал RS · PCH RS 45",
+  "429": "Канал RS · PCH RS 46",
+  "430": "Канал RS · PCH RS 47",
+  "431": "Канал RS · PCH RS 48",
+  "432": "Канал RS · PCH RS 49",
+  "433": "Канал RS · PCH RS 50",
+  "434": "Канал RS · PCH RS 51",
+  "435": "Канал RS · PCH RS 52",
+  "436": "Канал RS · PCH RS 53",
+  "437": "Канал RS · PCH RS 54",
+  "438": "Канал RS · PCH RS 55",
+  "439": "Канал RS · PCH RS 56",
+  "440": "Канал RS · PCH RS 57",
+  "441": "Канал RS · PCH RS 58",
+  "442": "Канал RS · PCH RS 59",
+  "443": "Канал RS · PCH RS 60",
+  "444": "Канал RS · PCH RS 61",
+  "445": "Канал RS · PCH RS 62",
+  "446": "Канал RS · PCH RS 63",
+  "447": "Канал RS · PCH RS 64",
+  "448": "Розширення · PCH EXT 1",
+  "449": "Розширення · PCH EXT 2",
+  "450": "Розширення · PCH EXT 3",
+  "451": "Розширення · PCH EXT 4",
+  "452": "Розширення · PCH EXT 5",
+  "453": "Розширення · PCH EXT 6",
+  "454": "Розширення · PCH EXT 7",
+  "455": "Розширення · PCH EXT 8",
+  "456": "Розширення · PCH EXT 9",
+  "457": "Розширення · PCH EXT 10",
+  "458": "Розширення · PCH EXT 11",
+  "459": "Розширення · PCH EXT 12",
+  "460": "Розширення · PCH EXT 13",
+  "461": "Розширення · PCH EXT 14",
+  "462": "Розширення · PCH EXT 15",
+  "463": "Розширення · PCH EXT 16",
+  "464": "Розширення · PCH EXT 17",
+  "465": "Розширення · PCH EXT 18",
+  "466": "Розширення · PCH EXT 19",
+  "467": "Розширення · PCH EXT 20",
+  "468": "Розширення · PCH EXT 21",
+  "469": "Розширення · PCH EXT 22",
+  "470": "Розширення · PCH EXT 23",
+  "471": "Розширення · PCH EXT 24",
+  "472": "Розширення · PCH EXT 25",
+  "473": "Розширення · PCH EXT 26",
+  "474": "Розширення · PCH EXT 27",
+  "475": "Розширення · PCH EXT 28",
+  "476": "Розширення · PCH EXT 29",
+  "477": "Розширення · PCH EXT 30",
+  "478": "Розширення · PCH EXT 31",
+  "479": "Розширення · PCH EXT 32",
+  "480": "Розширення · PCH EXT 33",
+  "481": "Розширення · PCH EXT 34",
+  "482": "Розширення · PCH EXT 35",
+  "483": "Розширення · PCH EXT 36",
+  "484": "Розширення · PCH EXT 37",
+  "485": "Розширення · PCH EXT 38",
+  "486": "Розширення · PCH EXT 39",
+  "487": "Розширення · PCH EXT 40",
+  "488": "Розширення · PCH EXT 41",
+  "489": "Розширення · PCH EXT 42",
+  "490": "Розширення · PCH EXT 43",
+  "491": "Розширення · PCH EXT 44",
+  "492": "Розширення · PCH EXT 45",
+  "493": "Розширення · PCH EXT 46",
+  "494": "Розширення · PCH EXT 47",
+  "495": "Розширення · PCH EXT 48",
+  "496": "Розширення · PCH EXT 49",
+  "497": "Розширення · PCH EXT 50",
+  "498": "Розширення · PCH EXT 51",
+  "499": "Розширення · PCH EXT 52",
+  "500": "Розширення · PCH EXT 53",
+  "501": "Розширення · PCH EXT 54",
+  "502": "Розширення · PCH EXT 55",
+  "503": "Розширення · PCH EXT 56",
+  "504": "Розширення · PCH EXT 57",
+  "505": "Розширення · PCH EXT 58",
+  "506": "Розширення · PCH EXT 59",
+  "507": "Розширення · PCH EXT 60",
+  "508": "Розширення · PCH EXT 61",
+  "509": "Розширення · PCH EXT 62",
+  "510": "Розширення · PCH EXT 63",
+  "511": "Розширення · PCH EXT 64"
+} /* CATALOG_END */;
+const palette = ['#58dfc9','#ffbf74','#7daeff','#f69ddd','#c1df7c','#ff9990','#a9a0ff','#81d3ef','#f7dd7b','#9be0a9','#e1a5ff'];
+const lightPalette = ['#007d71','#974b04','#235bb1','#a2266c','#526a02','#aa362e','#5540b5','#096887','#785703','#20783e','#88408e'];
+const traceColor = color => document.documentElement.dataset.theme==='light' ? lightPalette[palette.indexOf(color)] || color : color;
+const group0 = [
+  {param:'0.4',address:40004,name:'Вихідна частота',unit:'Гц'},
+  {param:'0.8',address:40008,name:'Вихідна напруга',unit:'В'},
+  {param:'0.7',address:40007,name:'Вихідний струм двигуна',unit:'А'},
+  {param:'0.5',address:40005,name:'Уставка частоти',unit:'Гц'},
+  {param:'0.23',address:40023,name:'Температура радіатора',unit:'°C'},
+  {param:'0.9',address:40009,name:'Розрахункова температура двигуна',unit:'%'},
+  {param:'0.10',address:40010,name:'Напруга ланки DC',unit:'В'},
+  {param:'0.2',address:40002,name:'Швидкість двигуна',unit:'об/хв'},
+  {param:'0.14',address:40014,name:'Струм фази A',unit:'А'},
+  {param:'0.15',address:40015,name:'Струм фази B',unit:'А'},
+  {param:'0.16',address:40016,name:'Струм фази C',unit:'А'},
+  {param:'0.30',address:40030,name:'Уставка ПІД',unit:'%'},
+  {param:'0.31',address:40031,name:'Зворотний зв’язок ПІД',unit:'%'}
+];
+const flags = [
+  {address:1062,name:'Готовий'}, {address:1061,name:'Робота'},
+  {address:1063,event:'fault',codeAddress:1206}, {address:1065,event:'warning',codeAddress:1207},
+  {address:1073,name:'Блокування',alert:'warn'}
+];
+// TWERD MFC710, редакція 7.4, таблиця 6.1.
+const eventDescriptions = {
+  1:'Висока температура радіатора',2:'Ненульова сума струмів фаз двигуна',
+  3:'Напруга DC завелика',4:'Напруга DC замала',5:'Коротке замикання на виході або несправність силового модуля',
+  6:'Струм двигуна перевищив допустимий',7:'Спрацював тепловий захист двигуна I²t',
+  8:'Несправність аналогового входу',9:'Перевантаження гальмівного резистора',10:'Несправність кола заряду DC',
+  11:'Датчик температури відсутній або несправний',12:'Коротке замикання датчика температури',13:'Низька температура радіатора',
+  14:'Несправність модуля AcR',15:'Втрачено зв’язок із модулем AcR',19:'Завелике відхилення швидкості від завдання',
+  20:'Несиметрія навантаження на виході',21:'Недовантаження',22:'Активний сигнал зовнішньої аварії 1',
+  23:'Активний сигнал зовнішньої аварії 2',24:'Спрацювало термореле або несправний датчик температури двигуна',
+  25:'Стопоріння двигуна',26:'Втрачено зв’язок із панеллю OP‑11',27:'Перевищено час очікування зв’язку RS',
+  28:'Завеликі коливання напруги DC',29:'Вихідна частота вища за межу',30:'Несправність енкодера або його кола'
+};
+const namesUk = {20:'Обрив сигналу AI0',21:'Обрив сигналу AI1',22:'Обрив сигналу AI2',61:'Робота',62:'Готовий',63:'Аварія',65:'Попередження',73:'Блокування',81:'Дискретний вихід DO1',82:'Дискретний вихід DO2',83:'Дискретний вихід DO3',84:'Дискретний вихід DO4',156:'Відносна вихідна напруга',159:'Розрахункова температура двигуна',134:'Аналоговий вхід AI0',135:'Аналоговий вхід AI1',136:'Аналоговий вхід AI2',137:'Вихід ПІД',138:'Мотопотенціометр',149:'Відносна швидкість обертання (модуль)',150:'Відносна швидкість обертання',151:'Відносна вихідна частота',152:'Відносний струм двигуна',157:'Помилка ПІД',158:'Уставка ПІД',160:'Зворотний зв’язок ПІД'};
+const logical = new Set([0,7,20,21,22,126,127,...range(1,6),...range(30,42),...range(59,84),...range(90,93),...range(304,311)]);
+// TWERD MFC710, додаток A. Програмовані формати залишаються сирими словами.
+const pchFormats = new Map([
+  ...[134,135,136,138,140,142,143,147,148,149,151,152,153,156,159,163,176,182,183,184,187]
+    .map(n=>[n,{unit:'%',divisor:10}]),
+  ...[137,150,154,155,157,186].map(n=>[n,{unit:'%',divisor:10,signed:true}]),
+  ...[133,164,165,166,...range(168,174)].map(n=>[n,{unit:'Гц',divisor:10,signed:true}]),
+  ...[167,188,189].map(n=>[n,{unit:'Гц',divisor:10}]),
+  [190,{unit:'хв',divisor:1}],[195,{unit:'хв',divisor:1}]
+]);
+const catalog = Array.from({length:512}, (_,n) => {
+  const code = 'PCH.' + String(n).padStart(3,'0');
+  const name = n >= 1 && n <= 6 ? 'Цифровий вхід DI' + n : namesUk[n] || documentedNames[n] || 'Резерв';
+  const format = pchFormats.get(n);
+  return {address:1000+n, code, name, alias:documentedNames[n] || '', n, format,
+    kind:logical.has(n) ? 'logic' : format ? 'numeric' : 'raw'};
+});
+const signalGroups = [
+  ['Основні вимірювання й уставки', [...group0,...[151,156,152,159,139,150,149,153,154,155,137,157,158,160].map(n=>catalog[n])]],
+  ['Входи й виходи', [...[...range(1,6),134,135,136,...range(81,84),...range(20,22)].map(n=>catalog[n]),
+    {param:'0.43',address:40043,name:'Аналоговий вихід AO1',unit:'%'},
+    {param:'0.44',address:40044,name:'Аналоговий вихід AO2',unit:'%'}]],
+  ['Стани й керування', [...range(61,75),...range(30,42),206,207,164,165,167,185].filter(n=>documentedNames[n] || n===73).map(n=>catalog[n])]
+];
+const featuredAddresses = new Set(signalGroups.flatMap(([,signals])=>signals.map(signal=>signal.address)));
+const otherSignals = catalog.filter(signal=>!featuredAddresses.has(signal.address));
+signalGroups.push(
+  ['Інші PCH',otherSignals.filter(signal=>signal.alias)],
+  ['Зарезервовані PCH',otherSignals.filter(signal=>!signal.alias)]
+);
+const scaledParameters = signalGroups.flatMap(([,signals])=>signals.filter(signal=>signal.param));
+function range(first,last) {
+  return Array.from({length:last-first+1}, (_,index) => first+index);
+}
+function crc16(bytes) {
+  let crc = 0xffff;
+  for (const value of bytes) {
+    crc ^= value;
+    for (let bit=0; bit<8; bit++) crc = crc & 1 ? (crc >>> 1) ^ 0xa001 : crc >>> 1;
+  }
+  return crc;
+}
+function fc03(unit,address,count) {
+  if (![unit,address,count].every(Number.isInteger) || unit<1 || unit>247 || address<0 || count<1 || count>125 || address+count>65536) throw new RangeError('Некоректні параметри FC03');
+  return rtuRequest(unit,3,address,count);
+}
+function rtuRequest(unit,fn,address,data) {
+  const bytes = Uint8Array.of(unit,fn,address>>8,address&255,data>>8,data&255,0,0);
+  const crc = crc16(bytes.subarray(0,6));
+  bytes[6] = crc & 255;
+  bytes[7] = crc >> 8;
+  return bytes;
+}
+class RtuError extends Error {
+  constructor(code,message) {
+    super(message);
+    this.code = code;
+  }
+}
+function inspectResponse(bytes,request) {
+  let sawCrc = false;
+  let sawFormat = false;
+  const functionCode = request.frame[1];
+  for (let offset=0; offset+2<=bytes.length; offset++) {
+    if (bytes[offset]!==request.unit) continue;
+    const fn = bytes[offset+1];
+    if (fn!==functionCode && fn!==(functionCode|0x80)) continue;
+    const exception = fn===(functionCode|0x80);
+    const writeReply = fn===6;
+    const count = bytes[offset+2];
+    if (!exception && !writeReply && count!==request.count*2) {
+      if (count!==undefined) sawFormat = true;
+      continue;
+    }
+    const length = exception ? 5 : writeReply ? 8 : 5+count;
+    if (offset+length>bytes.length) continue;
+    const frame = bytes.slice(offset,offset+length);
+    const expected = frame[length-2] | (frame[length-1]<<8);
+    if (crc16(frame.slice(0,-2))!==expected) {
+      sawCrc = true;
+      continue;
+    }
+    if (exception) {
+      const descriptions = {1:'недопустима функція',2:'недопустима адреса',3:'недопустиме значення',4:'помилка пристрою'};
+      const error = new RtuError('exception','Виняток Modbus '+frame[2]+(descriptions[frame[2]] ? ' – '+descriptions[frame[2]] : ''));
+      error.exceptionCode = frame[2];
+      return {error};
+    }
+    if (writeReply) {
+      if (request.frame.every((byte,index)=>frame[index]===byte)) return {words:[]};
+      sawFormat = true;
+      continue;
+    }
+    return {words:Array.from({length:request.count}, (_,i) => (frame[3+2*i]<<8)|frame[4+2*i])};
+  }
+  return {sawCrc,sawFormat};
+}
+const delay = ms => new Promise(resolve => setTimeout(resolve,ms));
+const rtuSilence = baud => Math.max(4,Math.ceil(3.5*11*1000/baud));
+class SerialRtu {
+  constructor(port,unit,baud,onLost) {
+    this.port = port;
+    this.unit = unit;
+    this.silence = rtuSilence(baud);
+    this.onLost = onLost;
+    this.lastRx = -Infinity;
+    this.nextTx = 0;
+    this.active = true;
+    this.reader = port.readable.getReader();
+    this.writer = port.writable.getWriter();
+    this.readTask = this.receive();
+  }
+  async receive() {
+    let reason = 'COM-порт від’єднано';
+    try {
+      while (this.active) {
+        const {value,done} = await this.reader.read();
+        if (done) break;
+        this.lastRx = performance.now();
+        const pending = this.pending;
+        if (!pending) continue;
+        pending.bytes = pending.bytes.concat(Array.from(value)).slice(-1024);
+        // Деякі адаптери повертають локальне ехо запиту перед відповіддю.
+        const echo = pending.frame;
+        if (echo[1]===3 && pending.bytes.length>=echo.length && echo.every((byte,i) => pending.bytes[i]===byte)) {
+          pending.bytes.splice(0,echo.length);
+        }
+        const result = inspectResponse(pending.bytes,pending);
+        pending.sawCrc ||= result.sawCrc;
+        pending.sawFormat ||= result.sawFormat;
+        if (result.words || result.error) this.settle(result.error,result.words);
+      }
+    } catch (error) {
+      if (error.message) reason += ' – '+error.message;
+    } finally {
+      this.reader.releaseLock();
+      if (this.active) this.onLost(reason);
+    }
+  }
+  settle(error,words) {
+    const pending = this.pending;
+    if (!pending) return;
+    this.pending = null;
+    clearTimeout(pending.timer);
+    if (error) pending.reject(error);
+    else pending.resolve(words);
+  }
+  read(address,count,timeout=650) {
+    return this.exchange(fc03(this.unit,address,count),count,timeout);
+  }
+  async writeVerified(address,value) {
+    if (!([2000,2001,2002,2003].includes(address) || address>=1384 && address<=1447 || parameterCatalog.get(address)?.format) ||
+        !Number.isInteger(address) || !Number.isInteger(value) || value<0 || value>65535) throw new RangeError('Некоректний запис FC06');
+    await this.exchange(rtuRequest(this.unit,6,address,value),0,650);
+    const [actual] = await this.read(address,1);
+    if (actual!==value) throw new RtuError('verify','Зворотне читання '+address+' не підтвердило запис');
+  }
+  async exchange(frame,count,timeout) {
+    if (!this.active) throw new RtuError('closed','COM-порт закрито');
+    if (this.busy) throw new RtuError('busy','Попередній запит ще виконується');
+    this.busy = true;
+    try {
+      let wait = Math.max(this.nextTx,this.lastRx+this.silence)-performance.now();
+      while (this.active && wait>0) {
+        await delay(wait);
+        wait = Math.max(this.nextTx,this.lastRx+this.silence)-performance.now();
+      }
+      if (!this.active) throw new RtuError('closed','COM-порт закрито');
+      return await new Promise((resolve,reject) => {
+        const pending = {unit:this.unit,count,frame,bytes:[],resolve,reject};
+        this.pending = pending;
+        pending.timer = setTimeout(() => {
+          // Відкинь пізні кадри перед наступним запитом, бо FC03 не повертає адресу регістра.
+          this.nextTx = performance.now()+timeout;
+          const error = pending.sawCrc ? new RtuError('crc','Помилка CRC') :
+            pending.sawFormat ? new RtuError('format','Некоректний формат відповіді') : new RtuError('timeout','Тайм-аут відповіді');
+          this.settle(error);
+        },timeout);
+        this.writeTask = this.writer.write(frame).catch(error => {
+          if (this.pending===pending) this.settle(new RtuError('io','Помилка COM-порту – '+error.message));
+        });
+      });
+    } finally {
+      this.busy = false;
+    }
+  }
+  async close() {
+    if (!this.active) return;
+    this.active = false;
+    this.settle(new RtuError('closed','COM-порт закрито'));
+    await this.reader.cancel().catch(() => {});
+    await this.readTask;
+    await this.writer.abort().catch(() => {});
+    this.writer.releaseLock();
+    await this.port.close();
+  }
+}
+function registerBlocks(addresses) {
+  const blocks = [];
+  for (const address of [...new Set(addresses)].sort((a,b)=>a-b)) {
+    const last = blocks.at(-1);
+    if (last && last.first+last.count===address && last.count<125) last.count++;
+    else blocks.push({first:address,count:1});
+  }
+  return blocks;
+}
+const blockMask = 0x7000;
+const forceMask = 0x70;
+const abPointer = pointer => Number.isInteger(pointer) && pointer>=384 && pointer<=447;
+const abReady = (pointer,startA,startB) => abPointer(pointer) && startA===32 && startB===32;
+const speedScale = operationMode => [0,1].includes(operationMode) ? 10 : [2,3].includes(operationMode) ? 1 : 0;
+const $ = id => document.getElementById(id);
+const selected = new Map();
+const sessionSignals = new Map();
+const latest = new Map();
+const maxHistory = 12000;
+const history = [];
+const statusNodes = flags.map(flag => {
+  if (flag.event) return null;
+  const item = document.createElement('span');
+  item.className = 'flag';
+  item.dataset.alert = flag.alert || '';
+  $('flags').append(item);
+  return item;
+});
+const slowPollAddresses = [41020,42001,42004,42005];
+const slowPollMaxAge = 3000;
+const auxiliary = [1037,1038,1039,1040,1073,1189,1206,1207,41020,42001,42004,42005,...range(2000,2006),
+  ...range(1001,1006),...range(1081,1084),...range(1134,1136),40043,40044];
+function makeIoNodes(id,count) {
+  return Array.from({length:count},() => {
+  const item = document.createElement('span');
+  item.className = 'flag';
+  $(id).append(item);
+  return item;
+  });
+}
+const ioNodes = [
+  {nodes:makeIoNodes('digitalInputs',6), first:1001,prefix:'DI',offset:1},
+  {nodes:makeIoNodes('analogInputs',3), first:1134,prefix:'AI',offset:0,analog:true},
+  {nodes:makeIoNodes('digitalOutputs',4), first:1081,prefix:'DO',offset:1},
+  {nodes:makeIoNodes('analogOutputs',2), first:40043,prefix:'AO',offset:1,analog:true}
+];
+const forcedInputNodes = range(1,6).map(n => {
+  const label = document.createElement('label');
+  label.className = 'row';
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  label.append(checkbox,'DI'+n);
+  $('forceInputs').append(label);
+  return checkbox;
+});
+let session = null;
+let source = null;
+let sessionMode = null;
+let lastGood = null;
+let frozenAt = null;
+let connecting = false;
+let closing = false;
+let trimmed = false;
+let renderRequested = false;
+let queuedCommand = null;
+let commandBusy = false;
+let wakePoll = null;
+let demonstration = null;
+const settings = new Map();
+const displaySettings = new Map();
+const format = new Intl.NumberFormat('uk-UA',{maximumFractionDigits:6});
+const timeFormat = new Intl.DateTimeFormat('uk-UA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+const numberText = value => format.format(value);
+const clock = value => timeFormat.format(value);
+
+function signed(raw) {
+  return raw>=32768 ? raw-65536 : raw;
+}
+function axisName(signal) {
+  if (signal.param) return sessionMode==='demo' || settings.has(signal.address) ? signal.unit : 'Сире слово · uint16';
+  if (signal.kind==='logic') return 'Дискретні · 0 / 1';
+  if (signal.format) return signal.format.unit;
+  return 'Сире слово · uint16';
+}
+function decode(signal,raw) {
+  if (signal.param) {
+    if (sessionMode==='demo') return signal.address===40043 || signal.address===40044 ? raw/10 : raw;
+    const configured = settings.get(signal.address);
+    return configured ? (configured.signed ? signed(raw) : raw)*configured.factor : raw;
+  }
+  if (signal.kind==='logic') return Number(raw!==0);
+  if (signal.format) return (signal.format.signed ? signed(raw) : raw)/signal.format.divisor;
+  return raw;
+}
+function status(message,tone='',detail='') {
+  $('status').textContent = message;
+  $('status').dataset.tone = tone;
+  $('detail').textContent = detail;
+}
+function updateControls() {
+  $('connect').disabled = connecting || closing || Boolean(session);
+  $('disconnect').disabled = !session || connecting || closing || commandBusy;
+  $('disconnect').textContent = session?.mode==='demo' ? 'Зупинити демо' : 'Відключити';
+  $('demo').disabled = Boolean(session) || connecting || closing;
+  $('address').disabled = $('baud').disabled = connecting || closing || session?.mode==='real';
+  $('csv').disabled = $('clear').disabled = history.length===0;
+  $('scale').disabled = session?.mode==='demo';
+  const mode = currentWord(2004);
+  const rsPermission = currentWord(1040);
+  const driveMode = currentWord(2006);
+  const healthy = Boolean(session && rsPermission && mode!==undefined && driveMode!==undefined);
+  const armed = healthy && $('arm').checked && !commandBusy;
+  const rsStart = Boolean(mode & 0x1000);
+  const rsFrequency = Boolean(mode & 0x2000);
+  const scale = speedScale(currentWord(41020));
+  const unit = scale===1 ? 'об/хв' : 'Гц';
+  const control = currentWord(2000);
+  const diForce = currentWord(2003);
+  const idle = currentWord(1061)===0 && !(control&0x8000);
+  $('arm').disabled = !session || commandBusy || (!healthy && !$('arm').checked);
+  $('startDrive').disabled = !armed || !rsStart || currentWord(1061)!==0 || !currentWord(1062) || currentWord(1063)!==0 ||
+    diForce===undefined || Boolean(diForce&0x8000) || Boolean(control&blockMask);
+  $('stopDrive').disabled = !healthy || !rsStart || commandBusy;
+  const stopContext = $('stopContext');
+  stopContext.textContent = !session || commandBusy ? '' :
+    !healthy ? (rsPermission===0 ? 'Стоп через RS недоступний: PCH.040 = 0 (дозвіл RS).' : 'Стоп через RS очікує свіжих даних ПЧ.') :
+    !rsStart ? 'Стоп через RS недоступний: зніми команду пуску з активного джерела, указаного нижче.' :
+    control&blockMask ? 'Стоп знімає команду пуску. Для зняття RS-блокування відкрий «Додаткове керування».' : '';
+  stopContext.hidden = !stopContext.textContent;
+  $('resetFault').disabled = !armed || !currentWord(1063) || currentWord(1061)!==0 || currentWord(2000)===undefined || Boolean(currentWord(2000)&0x8000);
+  const limit = currentWord(1189);
+  const max = scale===1 ? 5000 : limit>0 ? Math.min(500,limit/10) : 500;
+  $('driveUnit').textContent = unit;
+  $('frequency').max = max;
+  $('frequency').step = scale===1 ? '1' : '0.1';
+  $('frequency').disabled = $('direction').disabled = $('setFrequency').disabled = !armed || !rsFrequency || Boolean(mode&0xc000) || !scale || (scale===10 && !(limit>0));
+  $('pid').disabled = $('setPid').disabled = !armed || !(currentWord(2005)&0x10);
+  const targetChannel = {1:'B',2:'A'}[mode&3];
+  $('switchChannel').textContent = targetChannel ? 'Перемкнути на '+targetChannel : 'Перемкнути A/B';
+  $('switchChannel').disabled = !armed || !idle || !targetChannel || !abReady(currentWord(42001),currentWord(42004),currentWord(42005));
+  $('switchChannel').title = 'Потрібні зупинка, 2.1 → PCH.384–447 і RS як джерело пуску в обох каналах';
+  $('blockMode').disabled = $('setBlock').disabled = !armed || control===undefined;
+  const unblockContext = $('unblockContext');
+  const unblockReason = !session ? '' :
+    control===undefined ? 'Немає свіжих даних про RS-блокування.' :
+    !(control&blockMask) ? 'RS-блокування вимкнено.' :
+    commandBusy ? 'Виконується команда. Дочекайся відповіді ПЧ.' :
+    !healthy ? (rsPermission===0 ? 'Зняття недоступне: PCH.040 = 0 (дозвіл RS).' : 'Зняття очікує свіжих даних ПЧ.') :
+    !armed ? 'Увімкни «Дозволити команди з браузера».' :
+    currentWord(1061)===undefined || diForce===undefined ? 'Очікування свіжих даних про роботу ПЧ і стан DI.' :
+    !idle || Boolean(driveMode&1) ? 'Зніми команду пуску й дочекайся повної зупинки ПЧ.' :
+    diForce&0x8000 ? 'Спочатку натисни «Повернути фізичні DI».' : '';
+  $('clearBlock').disabled = !session || Boolean(unblockReason);
+  unblockContext.textContent = unblockReason;
+  unblockContext.hidden = !unblockReason;
+  const canForce = armed && idle && control!==undefined;
+  for (const id of ['forceStart','forceSpeed','forcePid','applyForce']) $(id).disabled = !canForce;
+  const canTestInputs = canForce && Boolean(control&blockMask) && Boolean(currentWord(1073)) && diForce!==undefined;
+  forcedInputNodes.forEach(node=>{ node.disabled = !canTestInputs; });
+  $('applyInputs').disabled = !canTestInputs;
+  $('restoreInputs').disabled = !canTestInputs || !(diForce&0x8000);
+  $('demoFault').hidden = session?.mode!=='demo';
+  $('demoFault').disabled = commandBusy;
+  const reference = currentWord(2001);
+  $('commandContext').textContent = !session ? 'Підключи ПЧ або запусти демо.' : !healthy ? (rsPermission===0 ? 'Керування RS заборонено ПЧ (PCH.040 = 0).' :
+      $('arm').checked ? 'Команди призупинено до отримання свіжих даних ПЧ.' : 'Очікування свіжих даних і дозволу RS (PCH.040).') :
+    'Задано через RS: '+(reference===undefined || !scale ? '—' : numberText(signed(reference)/scale)+' '+unit);
+  $('pidContext').textContent = 'Задатчик ПІД RS: '+(currentWord(2002)===undefined ? '—' : numberText(currentWord(2002)/10)+' %');
+  updateParameterControls();
+}
+function currentWord(address) {
+  const reading = latest.get(address);
+  return reading?.fresh ? (reading.raw ?? reading.value) : undefined;
+}
+function describeEvent(active,code) {
+  if (active===undefined) return 'Немає даних';
+  if (!active) return 'Немає активної події';
+  if (code===undefined || code===0) return 'Активна подія · код недоступний';
+  return 'Код '+code+' · '+(eventDescriptions[code] || 'Опис відсутній у таблиці 6.1');
+}
+function updateReadouts() {
+  flags.forEach((flag,i) => {
+    if (flag.event) {
+      const active = currentWord(flag.address);
+      $(flag.event+'Row').dataset.active = String(Boolean(active));
+      $(flag.event+'Description').textContent = describeEvent(active,currentWord(flag.codeAddress));
+      return;
+    }
+    const reading = latest.get(flag.address);
+    const on = !reading?.fresh ? 'unknown' : String(reading.value!==0);
+    const node = statusNodes[i];
+    node.dataset.on = on;
+    node.textContent = flag.name+' '+(on==='unknown' ? '?' : on==='true' ? '●' : '○');
+    node.title = on==='unknown' ? 'Стан невідомий' : on==='true' ? 'Активний' : 'Неактивний';
+  });
+  $('last').textContent = 'Останнє оновлення – '+(lastGood===null ? '—' : clock(lastGood));
+  const mode = currentWord(2006);
+  $('modeWord').hidden = mode===undefined;
+  $('modeWord').textContent = mode===undefined ? '' :
+    '2006 · 0x'+mode.toString(16).toUpperCase().padStart(4,'0')+(mode&8 ? ' · готовність до рестарту' : '');
+  const sources = currentWord(2004);
+  const startSource = [[12,'RS'],[11,'PCH'],[10,'OP‑11'],[9,'дискретні входи']].filter(([bit])=>sources&(1<<bit)).map(([,name])=>name).join(' + ');
+  const referenceSource = [[13,'RS'],[15,'аварійний'],[14,'постійна f'],[8,'PCH'],[7,'OP‑11'],[6,'ПІД'],[5,'мотопотенціометр'],[4,'AI2'],[3,'AI1'],[2,'AI0']].filter(([bit])=>sources&(1<<bit)).map(([,name])=>name).join(' + ');
+  const channel = sources&3;
+  $('controlSources').textContent = 'Канал '+({1:'A',2:'B'}[channel] || '—')+' · Пуск: '+(startSource || '—')+' · Частота: '+(referenceSource || '—');
+  $('liveDirection').textContent = 'Напрямок: '+(mode===undefined ? '—' : mode&1 ? (mode&0x4000 ? 'вліво' : 'вправо') : 'привід зупинений');
+  const word = currentWord(2000);
+  const inputs = currentWord(2003);
+  const force = [[0x40,'Пуск/стоп'],[0x20,'частота'],[0x10,'ПІД']].filter(([bit])=>word&bit).map(([,name])=>name);
+  const blocks = [[0x1000,'за налаштуванням'],[0x2000,'RAMP'],[0x4000,'вибігом']].filter(([bit])=>word&bit).map(([,name])=>name);
+  $('forceState').textContent = 'Примусово: '+(word===undefined ? '—' : force.join(', ') || 'вимкнено')+
+    ' · RS-блокування: '+(word===undefined ? '—' : blocks.join(', ') || 'вимкнено')+
+    ' · DI: '+(inputs===undefined ? '—' : inputs&0x8000 ? 'імітація' : 'фізичні');
+  for (const {nodes,first,prefix,offset,analog} of ioNodes) nodes.forEach((node,index) => {
+    const value = currentWord(first+index);
+    node.dataset.on = value===undefined ? 'unknown' : String(!analog && value!==0);
+    const display = value===undefined ? '—' : analog ? (value<=1000 ? numberText(value/10)+' %' : 'raw '+value) : Number(value!==0);
+    node.textContent = prefix+(index+offset)+' · '+display;
+  });
+  for (const [address,signal] of selected) {
+    const reading = latest.get(address);
+    const unit = physicalDisplayUnit(signal);
+    const value = displayValue(signal,reading?.value);
+    signal.output.textContent = Number.isFinite(value) ? numberText(value)+(unit ? ' '+unit : '') : '—';
+    signal.output.dataset.stale = String(Boolean(reading && !reading.fresh));
+    signal.output.title = reading && !reading.fresh ? 'Застарілі дані від '+clock(reading.time) : signal.meta.textContent;
+  }
+  $('retention').textContent = trimmed ? 'Збережено останні 12 000 циклів. CSV містить доступну історію сеансу.' :
+    'Історія поточного сеансу зберігається в пам’яті вкладки.';
+  updateControls();
+}
+function renderSignals() {
+  $('signals').replaceChildren();
+  for (const [address,signal] of selected) {
+    const row = document.createElement('div');
+    row.className = 'signal';
+    const card = document.createElement('div');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = signal.visible;
+    checkbox.setAttribute('aria-label','Графік: '+signal.name);
+    checkbox.addEventListener('change',() => {
+      signal.visible = checkbox.checked;
+      syncPlots();
+    });
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.style.background = traceColor(signal.color);
+    const label = document.createElement('label');
+    label.className = 'signal-name';
+    label.append(signal.name);
+    checkbox.id = 'show-'+address;
+    label.htmlFor = checkbox.id;
+    const meta = document.createElement('small');
+    const sourceId = signal.param ? 'пар. '+signal.param : signal.code;
+    meta.textContent = sourceId+' · '+address;
+    label.append(meta);
+    const output = document.createElement('output');
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.textContent = '×';
+    remove.setAttribute('aria-label','Прибрати '+signal.name);
+    remove.addEventListener('click',() => {
+      selected.delete(address);
+      renderSignals();
+      listResults();
+    });
+    row.append(checkbox,chip,label,output,remove);
+    card.append(row,createScaleInputs(signal));
+    $('signals').append(card);
+    Object.assign(signal,{output,meta});
+  }
+  updateReadouts();
+  $('chosenCount').textContent = 'Вибрано: '+selected.size;
+  syncPlots();
+}
+function createScaleInputs(signal) {
+  const controls = document.createElement('div');
+  controls.className = 'signal-scale';
+  const error = document.createElement('p');
+  error.className = 'signal-scale-error';
+  error.setAttribute('role','status');
+  error.hidden = true;
+  const inputs = {};
+  const config = displaySettings.get(signal.address);
+  const options = {};
+  for (const [key,title,checked] of [
+    ['auto','Автомасштаб',config?.auto!==false],
+    ['axis','Окрема вісь Y зліва',Boolean(config?.axis)]
+  ]) {
+    const label = document.createElement('label');
+    label.className = 'axis-option';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = checked;
+    checkbox.setAttribute('aria-label',title+' · '+signal.name);
+    options[key] = checkbox;
+    label.append(checkbox,title);
+    controls.append(label);
+  }
+  for (const [key,title] of [['min','Нижня межа'],['max','Верхня межа'],['factor','Множник показів'],['unit','Одиниця']]) {
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    label.textContent = title;
+    input.setAttribute('aria-label',title+' · '+signal.name);
+    input.value = config?.[key] ?? '';
+    input.placeholder = key==='factor' ? numberText(defaultDisplayFactor(signal)) : key==='unit' ? physicalDisplayUnit(signal) || 'Авто' : 'Авто';
+    if (key==='unit') input.maxLength = 16;
+    else input.inputMode = 'decimal';
+    inputs[key] = input;
+    label.append(input);
+    controls.append(label);
+  }
+  inputs.min.disabled = inputs.max.disabled = options.auto.checked;
+  controls.addEventListener('input',event => {
+    const auto = options.auto.checked;
+    inputs.min.disabled = inputs.max.disabled = auto;
+    if (event.target===options.auto && !auto) {
+      const scale = sharedPlot?.scales?.get(scaleKey(signal));
+      inputs.min.value ||= String(scale?.min ?? 0);
+      inputs.max.value ||= String(scale?.max ?? 1);
+    }
+    const min = parseScaleLimit(inputs.min.value);
+    const max = parseScaleLimit(inputs.max.value);
+    const factor = parseScaleLimit(inputs.factor.value);
+    const boundsValid = Number.isFinite(min) && Number.isFinite(max) && min<max;
+    const factorValid = factor===undefined || Number.isFinite(factor) && factor>0;
+    const previous = displaySettings.get(signal.address) || {};
+    displaySettings.set(signal.address,{
+      ...previous,
+      auto:auto || (!boundsValid && previous.auto!==false),
+      axis:options.axis.checked,
+      ...(boundsValid ? {min,max} : {}),
+      ...(factorValid ? {factor} : {}),
+      unit:inputs.unit.value.trim()
+    });
+    const message = !auto && !boundsValid ? 'Введи обидві межі. Верхня має бути більшою за нижню.' :
+      !factorValid ? 'Множник має бути додатним числом.' : '';
+    error.textContent = message;
+    error.hidden = !message;
+    updateReadouts();
+    requestPlots();
+  });
+  const container = document.createElement('details');
+  container.className = 'signal-settings';
+  const summary = document.createElement('summary');
+  summary.textContent = 'Налаштування шкали';
+  summary.setAttribute('aria-label','Налаштування шкали · '+signal.name);
+  container.append(summary,controls,error);
+  return container;
+}
+function parseScaleLimit(text) {
+  const value = text.trim().replace(',','.');
+  if (!value) return undefined;
+  if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value)) return NaN;
+  const number = Number(value);
+  return Math.abs(number)<=Number.MAX_VALUE/4 ? number : NaN;
+}
+function addSignal(spec) {
+  if (selected.has(spec.address)) return;
+  const old = sessionSignals.get(spec.address);
+  const index = [...Array(palette.length).keys()].find(i => ![...selected.values()].some(s => s.color===palette[i]));
+  const signal = {...spec,visible:true,color:old?.color || palette[index ?? selected.size%palette.length]};
+  selected.set(spec.address,signal);
+  if (session) sessionSignals.set(spec.address,signal);
+}
+function pumpPreset() {
+  [...group0.slice(0,4),...group0.slice(-2)].forEach(addSignal);
+  catalog.slice(1,7).forEach(addSignal);
+  renderSignals();
+  listResults();
+}
+function listResults() {
+  const query = $('search').value.trim().toLocaleLowerCase('uk');
+  const results = $('results');
+  results.replaceChildren();
+  const match = /^(?:pch[.\s]*)?(\d{1,3})$/i.exec(query);
+  const terms = query.split(/\s+/);
+  for (const [title,signals] of signalGroups) {
+    const matches = signals.filter(signal => match ? signal.n===Number(match[1]) :
+      terms.every(term => [signal.code,signal.param,signal.name,signal.alias,signal.unit].join(' ').toLocaleLowerCase('uk').includes(term)));
+    if (!matches.length) continue;
+    const heading = document.createElement('h3');
+    heading.className = 'signal-group';
+    heading.textContent = title;
+    results.append(heading);
+    for (const signal of matches) {
+      const item = document.createElement('button');
+      item.type = 'button';
+      const updateItem = () => {
+        const chosen = selected.has(signal.address);
+        item.setAttribute('aria-pressed',String(chosen));
+        item.textContent = (chosen ? '✓ ' : '+ ')+(signal.param ? 'Пар. '+signal.param : signal.code)+' · '+signal.name;
+      };
+      updateItem();
+      item.addEventListener('click',() => {
+        if (selected.has(signal.address)) selected.delete(signal.address);
+        else addSignal(signal);
+        renderSignals();
+        updateItem();
+      });
+      results.append(item);
+    }
+  }
+  if (!results.childElementCount) results.textContent = 'Нічого не знайдено';
+}
+function openScales() {
+  const rows = $('scaleRows');
+  rows.replaceChildren();
+  for (const signal of scaledParameters) {
+    const row = rows.insertRow();
+    row.insertCell().textContent = signal.name+' ('+signal.address+')';
+    const factor = document.createElement('input');
+    factor.className = 'factor';
+    factor.type = 'number';
+    factor.step = 'any';
+    factor.setAttribute('aria-label','Множник: '+signal.name);
+    factor.placeholder = 'Сире слово';
+    factor.value = settings.get(signal.address)?.factor ?? '';
+    const type = document.createElement('select');
+    type.setAttribute('aria-label','Тип: '+signal.name);
+    type.add(new Option('uint16','unsigned'));
+    type.add(new Option('int16','signed'));
+    type.value = settings.get(signal.address)?.signed ? 'signed' : 'unsigned';
+    row.insertCell().append(factor);
+    row.insertCell().append(type);
+    row.address = signal.address;
+  }
+  $('scaleDialog').showModal();
+}
+function applyScales() {
+  const newSettings = new Map();
+  for (const row of $('scaleRows').rows) {
+    const input = row.querySelector('input');
+    const factor = input.valueAsNumber;
+    input.setCustomValidity(input.value && (!Number.isFinite(factor) || factor<=0 || !Number.isFinite(factor*65535)) ? 'Введи додатний скінченний множник' : '');
+    if (!input.reportValidity()) return;
+    if (input.value) newSettings.set(row.address,{factor,signed:row.querySelector('select').value==='signed'});
+  }
+  if (JSON.stringify([...settings])!==JSON.stringify([...newSettings])) {
+    for (const {address} of scaledParameters) latest.delete(address);
+    settings.clear();
+    newSettings.forEach((value,key)=>settings.set(key,value));
+    clearHistory();
+    renderSignals();
+  }
+  $('scaleDialog').close();
+}
+function clearHistory() {
+  history.length = 0;
+  sessionSignals.clear();
+  selected.forEach((signal,address)=>sessionSignals.set(address,signal));
+  trimmed = false;
+  setPause(false);
+  updateReadouts();
+}
+function setPause(on) {
+  frozenAt = on ? Date.now() : null;
+  $('pause').setAttribute('aria-pressed',String(on));
+  $('pause').textContent = on ? 'Продовжити перегляд' : 'Пауза перегляду';
+  requestPlots();
+}
+function newSession(mode) {
+  session = {mode,start:Date.now()};
+  sessionMode = mode;
+  resetPollTiming();
+  resetParameterValues();
+  demonstration = mode==='demo' ? {manual:false,running:false,fault:false,frequency:30,output:0,channel:1,pid:60,block:0,force:0,inputs:0} : null;
+  $('arm').checked = false;
+  commandFeedback('');
+  lastGood = null;
+  latest.clear();
+  clearHistory();
+  renderSignals();
+  return session;
+}
+function record(time,rawWords,signals,retained=[]) {
+  const values = new Map();
+  const watched = new Map(signals.map(signal=>[signal.address,signal]));
+  for (const flag of flags) watched.set(flag.address,{kind:'logic',...flag});
+  for (const address of auxiliary) {
+    if (rawWords.has(address)) latest.set(address,{value:rawWords.get(address),fresh:true,time});
+    else if (!retained.includes(address) && latest.has(address)) latest.get(address).fresh = false;
+  }
+  for (const [address,signal] of watched) {
+    if (rawWords.has(address)) {
+      const value = decode(signal,rawWords.get(address));
+      latest.set(address,{value,raw:rawWords.get(address),fresh:true,time});
+      if (!flags.some(flag=>flag.address===address) || signals.some(signal=>signal.address===address)) values.set(address,value);
+    } else if (latest.has(address)) latest.get(address).fresh = false;
+  }
+  if (currentWord(1040)===0 && $('arm').checked) {
+    $('arm').checked = false;
+    commandFeedback('Дозвіл команд скинуто: ПЧ вимкнув дозвіл RS (PCH.040 = 0).','bad');
+  }
+  if (rawWords.size) lastGood = time;
+  history.push({time,values});
+  if (history.length>maxHistory) {
+    history.shift();
+    trimmed = true;
+  }
+  updateReadouts();
+  if (frozenAt===null) requestPlots();
+}
+const demoPeriod = 100;
+const defaultManualPeriod = 500;
+const manualPeriodLimit = 10000;
+const replyMarginPerBlock = 10;
+const periodRounding = 25;
+let preferredManualPeriod = defaultManualPeriod;
+let pollTiming = {};
+
+function pollPlan(signals,skip=[],includeSlow=false) {
+  const essential = [...flags.map(flag=>flag.address),...auxiliary]
+    .filter(address=>!skip.includes(address) && (includeSlow || !slowPollAddresses.includes(address)));
+  const known = new Set([...essential,...skip]);
+  const remaining = signals.map(signal=>signal.address).filter(address=>!known.has(address));
+  return [...registerBlocks(essential),...registerBlocks(remaining)];
+}
+function wirePeriod(blocks,baud) {
+  // 8 bytes in FC03 request, 5 + 2n in the reply, 11 bits per byte in 8N2.
+  return Math.ceil(blocks.reduce((ms,{count})=>ms+(13+2*count)*11*1000/baud+rtuSilence(baud),0));
+}
+function pollConfiguration(signals=[...selected.values()]) {
+  if (session?.mode==='demo') return {key:'demo',floor:demoPeriod};
+  const baud = Number($('baud').value) || 9600;
+  const blocks = pollPlan(signals);
+  const estimate = wirePeriod(blocks,baud)+blocks.length*replyMarginPerBlock;
+  const floor = Math.max(100,Math.ceil(estimate/periodRounding)*periodRounding);
+  return {key:JSON.stringify([baud,blocks]),floor};
+}
+function manualPollBounds(configuration=pollConfiguration()) {
+  const min = configuration.floor;
+  return {min,max:Math.max(manualPeriodLimit,min)};
+}
+function normalizeManualPeriod(value,{min,max}) {
+  return Number.isFinite(value) ? Math.min(max,Math.max(min,Math.round(value))) : min;
+}
+function getPeriod(configuration=pollConfiguration()) {
+  if ($('pollMode').value==='manual') return normalizeManualPeriod(preferredManualPeriod,manualPollBounds(configuration));
+  return configuration.floor;
+}
+function updatePollUI() {
+  const configuration = pollConfiguration();
+  const manual = $('pollMode').value==='manual';
+  const field = $('period');
+  const {min,max} = manualPollBounds(configuration);
+  $('manualPoll').hidden = field.disabled = !manual;
+  field.min = min;
+  field.max = max;
+  if (document.activeElement!==field || !manual) field.value = normalizeManualPeriod(preferredManualPeriod,{min,max});
+  $('pollMinimum').textContent = manual ? 'Мінімум – '+min+' мс' : 'Задано – '+configuration.floor+' мс';
+  const actual = configuration.key===pollTiming.key ? pollTiming.actual : undefined;
+  $('pollActual').textContent = 'Фактичний інтервал – '+(actual===undefined ? '—' : Math.round(actual)+' мс');
+}
+function commitManualPeriod() {
+  if ($('pollMode').value!=='manual') return;
+  const field = $('period');
+  preferredManualPeriod = normalizeManualPeriod(field.valueAsNumber,manualPollBounds());
+  field.value = preferredManualPeriod;
+  updatePollUI();
+}
+function resetPollTiming() {
+  pollTiming = {};
+  updatePollUI();
+}
+function trackPoll(configuration,ended) {
+  if (configuration.key!==pollTiming.key) pollTiming = {key:configuration.key};
+  pollTiming.actual = pollTiming.previous===undefined ? undefined : ended-pollTiming.previous;
+  pollTiming.previous = ended;
+  updatePollUI();
+}
+function serialAvailable() {
+  return window.isSecureContext && typeof navigator.serial?.requestPort==='function';
+}
+async function connect() {
+  if (!serialAvailable()) {
+    status('Доступ до COM-порту недоступний','bad','Відкрий файл у настільному Chrome або Edge чи відкрий сторінку через HTTPS. Перевір дозволи браузера. Демо доступне.');
+    return;
+  }
+  if (!$('address').reportValidity()) return;
+  const unit = $('address').valueAsNumber;
+  const baudRate = Number($('baud').value);
+  connecting = true;
+  updateControls();
+  let port;
+  let opened = false;
+  try {
+    port = await navigator.serial.requestPort();
+    await port.open({baudRate,dataBits:8,stopBits:2,parity:'none',flowControl:'none'});
+    opened = true;
+    source = new SerialRtu(port,unit,baudRate,message => stopSession(message));
+    const current = newSession('real');
+    status('COM-порт відкрито','','Пробне читання регістра 2006…');
+    run(current);
+  } catch (error) {
+    if (opened) await port.close().catch(()=>{});
+    status(error.name==='NotFoundError' ? 'Порт не вибрано' : 'Не вдалося відкрити COM-порт','bad',
+      error.name==='NotFoundError' ? 'Під’єднай адаптер і вибери його в діалозі браузера.' : error.message);
+  } finally {
+    connecting = false;
+    updateControls();
+  }
+}
+async function stopSession(message) {
+  if (!session) return;
+  const previous = source;
+  source = null;
+  session = null;
+  queuedCommand = null;
+  commandBusy = false;
+  wakePoll?.();
+  $('arm').checked = false;
+  if (message) commandFeedback('Зв’язок перервано. Звір фактичний стан ПЧ.','bad');
+  closing = Boolean(previous);
+  resetPollTiming();
+  resetParameterValues();
+  if (history.length) record(Date.now(),new Map(),[...selected.values()]);
+  latest.forEach(reading=>{ reading.fresh = false; });
+  updateReadouts();
+  status(message || (previous ? 'Відключено' : 'Демо зупинено'),message ? 'bad' : '');
+  let closeError;
+  try {
+    if (previous) await previous.close();
+  } catch (error) {
+    closeError = error;
+  } finally {
+    closing = false;
+    updateControls();
+    if (closeError && !message) status('COM-порт закрито з помилкою','bad',closeError.message);
+  }
+}
+function demoWords(elapsed,signals) {
+  const t = elapsed%36;
+  const words = new Map();
+  const sim = demonstration;
+  if (!sim?.manual && t>=17 && t<20) return words;
+  const running = sim?.manual ? sim.running : t>=3 && t<31;
+  const target = sim?.manual ? (running ? sim.frequency : 0) : running ? 43 : 0;
+  const ramp = Math.max(0,Math.min(1,(t-3)/7,(34-t)/3));
+  if (sim?.manual) sim.output += Math.max(-3,Math.min(3,target-sim.output));
+  const frequency = sim?.manual ? sim.output : ramp*(43+Math.sin(t*.7)*1.8);
+  const current = Math.abs(frequency)/3;
+  const feedback = 60-Math.cos(t*.25)*11;
+  const fault = Number(Boolean(sim?.fault));
+  const digit = value => Math.round(value*10)/10;
+  const block = sim?.block ?? 0;
+  const pid = sim?.pid ?? 60;
+  const voltage = digit(Math.abs(frequency)*8);
+  const known = new Map([[40005,target],[40004,digit(frequency)],[40008,voltage],[40007,digit(current)],[40030,pid],[40031,digit(feedback)],
+    [1001,Number(running)],[1002,Number(t>11 && t<27)],[1003,0],[1004,0],[1005,0],[1006,1],
+    [1040,1],[1061,Number(running)],[1062,1-fault],[1063,fault],[1065,Number(t>26 && t<29)],
+    [1073,Number(Boolean(block))],[1081,Number(running)],[1082,1-fault],[1083,fault],[1084,0],
+    [1134,Math.round(feedback*10)],[1135,450],[1136,320],[40043,Math.round(Math.abs(frequency)*20)],[40044,Math.round(current*40)],
+    [1189,500],[1206,fault?5:0],[1207,0],[2000,(running?0x8000:0)|block|(sim?.force ?? 0)],
+    [2001,Math.round((sim?.frequency ?? 30)*10)&0xffff],[2002,Math.round(pid*10)],[2003,sim?.inputs ?? 0],
+    [2004,0x3000|(sim?.channel ?? 1)],[2005,0x10],[2006,Number(running)|(block?4:0)|(frequency<0?0x4000:0)],
+    [41020,0],[42001,384],[42004,32],[42005,32],
+    [1156,Math.round(voltage*2.5)],
+    [1151,Math.round(Math.abs(frequency)*20)],[1152,Math.round(current*40)],[1158,Math.round(pid*10)],[1160,Math.round(feedback*10)]]);
+  if (sim?.inputs&0x8000) for (let i=0;i<6;i++) known.set(1001+i,(sim.inputs>>i)&1);
+  for (const address of [...signals.map(signal=>signal.address),...flags.map(flag=>flag.address),...auxiliary]) {
+    if (known.has(address)) words.set(address,known.get(address));
+  }
+  return words;
+}
+function commandFeedback(message,tone='') {
+  $('commandResult').textContent = message;
+  $('commandResult').dataset.tone = tone;
+}
+function waitForPoll(ms) {
+  return new Promise(resolve => {
+    const finish = () => {
+      clearTimeout(timer);
+      wakePoll = null;
+      resolve();
+    };
+    const timer = setTimeout(finish,ms);
+    wakePoll = finish;
+    if (queuedCommand) finish();
+  });
+}
+function requestCommand(kind,value) {
+  if (!session || commandBusy) return;
+  const button = {start:'startDrive',stop:'stopDrive',reset:'resetFault',frequency:'setFrequency',pid:'setPid',
+    channel:'switchChannel',block:'setBlock',unblock:'clearBlock',force:'applyForce',inputs:'applyInputs',restore:'restoreInputs'}[kind];
+  if ($(button).disabled) return;
+  if (kind==='start' && !window.confirm(session.mode==='demo' ? 'Імітувати пуск насоса?' :
+    'Подати ПУСК на MFC710 (адреса '+$('address').value+')? Переконайся, що механізм готовий до пуску.')) return;
+  if (kind==='reset' && !window.confirm(session.mode==='demo' ? 'Скинути імітовану аварію?' :
+    'Скинути аварію MFC710? Підтвердь, що причину усунено й команду пуску знято.')) return;
+  const confirmation = {
+    force:'Змінити джерела примусового керування RS? Перевір, що штатна команда пуску знята.',
+    inputs:'Імітувати стани DI? Фізичні сигнали на входах будуть ігноруватися, доки не повернеш фізичні DI.',
+    unblock:'Зняти RS-блокування? Підтвердь, що штатні команди пуску зняті.'
+  }[kind];
+  if (confirmation && !window.confirm(confirmation)) return;
+  queuedCommand = {kind,value};
+  commandBusy = true;
+  commandFeedback('Перевірка дозволів і стану…');
+  updateControls();
+  wakePoll?.();
+}
+async function executeDriveCommand(transport,{kind,value},stillPermitted,onWrite) {
+  const [startSignal,,,rsPermission] = await transport.read(1037,4);
+  const [sourceWord,pidSource,modeWord] = await transport.read(2004,3);
+  const [controlWord,reference] = await transport.read(2000,2);
+  const [running,ready,fault] = await transport.read(1061,3);
+  const check = (condition,message) => {
+    if (!condition) throw new RtuError('interlock',message);
+  };
+  const write = async (address,word) => {
+    check(stillPermitted(),'Дозвіл із браузера знято або сеанс перервано');
+    onWrite();
+    await transport.writeVerified(address,word);
+  };
+  if (!rsPermission) throw new RtuError('rs-denied','ПЧ не дозволяє керування RS (PCH.040)');
+  const stopped = running===0 && !(modeWord&1);
+  const noStart = stopped && startSignal===0 && !(controlWord&0x8000);
+  if (kind==='parameter') {
+    const spec = parameterCatalog.get(value.address);
+    check(spec?.format,'Параметр доступний лише для читання');
+    check(noStart,'Зупини ПЧ та зніми всі команди пуску');
+    const [overrides] = await transport.read(2003,1);
+    check(overrides!==undefined && !(overrides&0x8000),'Спочатку поверни фізичні DI');
+    const word = encodeParameter(spec,value.input);
+    check(word!==undefined,'Значення поза допустимим діапазоном або кроком');
+    const [actual] = await transport.read(spec.address,1);
+    if (actual!==value.expected) {
+      parameterValues.set(spec.address,{word:actual});
+      refreshParameterRows();
+      throw new RtuError('interlock','Параметр '+spec.id+' вже змінився. Звір поточне значення та повтори дію.');
+    }
+    const [startAgain,,,permissionAgain] = await transport.read(1037,4);
+    const [modeAgain] = await transport.read(2006,1);
+    if (!permissionAgain) throw new RtuError('rs-denied','ПЧ вимкнув дозвіл RS (PCH.040)');
+    const [controlAgain,,,overridesAgain] = await transport.read(2000,4);
+    check(startAgain===0 && Number.isInteger(modeAgain) && !(modeAgain&1) &&
+      Number.isInteger(controlAgain) && !(controlAgain&0x8000) && Number.isInteger(overridesAgain) && !(overridesAgain&0x8000),
+      'Стан привода змінився. Зупини ПЧ, зніми команду пуску та поверни фізичні DI.');
+    await write(spec.address,word);
+    parameterValues.set(spec.address,{word});
+    parameterDrafts.delete(spec.address);
+    const row = parameterRowNodes.get(spec.address);
+    if (row?.input) row.input.value = '';
+    refreshParameterRows();
+    return 'Параметр '+spec.id+' записано й підтверджено читанням.';
+  }
+  if (kind==='frequency') {
+    const [operationMode] = await transport.read(41020,1);
+    const scale = speedScale(operationMode);
+    check(scale>0,'Режим ПЧ для завдання не визначено');
+    check((sourceWord&0x2000) && !(sourceWord&0xc000),'RS має бути діючим джерелом частоти');
+    const [limit] = scale===10 ? await transport.read(1189,1) : [5000];
+    const ceiling = Math.min(5000,limit);
+    const unit = scale===10 ? 'Гц' : 'об/хв';
+    const raw = Math.round(value*scale);
+    check(Number.isFinite(value) && Math.abs(value*scale-raw)<1e-7 && limit>0 && Math.abs(raw)<=ceiling,
+      'Допустимий модуль завдання: до '+numberText(ceiling/scale)+' '+unit+'; крок '+numberText(1/scale));
+    if (raw!==0 && !stopped) check((raw<0)===Boolean(modeWord&0x4000),'Зміна напрямку доступна після зупинки');
+    await write(2001,raw&0xffff);
+    return 'Завдання RS підтверджено читанням: '+numberText(raw/scale)+' '+unit+'.';
+  }
+  if (kind==='pid') {
+    check(pidSource&0x10,'RS не є активним джерелом завдання ПІД (2.60)');
+    const raw = Math.round(value*10);
+    check(Number.isFinite(value) && Math.abs(value*10-raw)<1e-7 && raw>=0 && raw<=1000,'Введи 0–100 % із кроком 0,1 %');
+    await write(2002,raw);
+    return 'Задатчик ПІД підтверджено читанням: '+numberText(raw/10)+' %.';
+  }
+  if (kind==='channel') {
+    check(noStart,'Перемикання A/B доступне після зупинки й зняття команди пуску');
+    const [pointer] = await transport.read(42001,1);
+    const [startA,startB] = await transport.read(42004,2);
+    const [inputOverride] = await transport.read(2003,1);
+    check(!(inputOverride&0x8000),'Поверни фізичні DI перед перемиканням A/B');
+    check(abReady(pointer,startA,startB),'Потрібні 2.1 → PCH.384–447 та 2.4 = 2.5 = 032');
+    check((sourceWord&3)===1 || (sourceWord&3)===2,'Активний канал A/B невідомий');
+    const next = (sourceWord&3)===1 ? 1 : 0;
+    await write(1000+pointer,next);
+    const [actual] = await transport.read(2004,1);
+    return (actual&3)===(next ? 2 : 1) ? 'Активний канал '+(next?'B':'A')+' підтверджено.' :
+      'Канал задано. Перевір фактичний канал A/B у стані ПЧ.';
+  }
+  if (kind==='block') {
+    check([0x1000,0x2000,0x4000].includes(value),'Невідомий спосіб блокування');
+    await write(2000,(controlWord&~(blockMask|0x8000))|value);
+    return 'RS-блокування підтверджено читанням.';
+  }
+  if (kind==='unblock') {
+    check(stopped,'Перед зняттям RS-блокування дочекайся повної зупинки ПЧ');
+    check(noStart,'Команда пуску ще активна (PCH.037 або RS START). Зніми її з активного джерела.');
+    const [overrides] = await transport.read(2003,1);
+    check(!(overrides&0x8000),'Спочатку поверни фізичні DI');
+    await write(2000,controlWord&~blockMask);
+    return 'RS-блокування знято.';
+  }
+  if (kind==='force') {
+    check(noStart,'Примусове керування можна змінити після зупинки та зняття команди пуску');
+    check(Number.isInteger(value) && value>=0 && value<=forceMask && !(value&~forceMask),'Некоректна маска примусового керування');
+    if ((controlWord&0x40) && !(value&0x40) && !(controlWord&blockMask)) {
+      const channel = sourceWord&3;
+      check(channel===1 || channel===2,'Активний канал A/B невідомий');
+      const [configuredStart] = await transport.read(channel===1 ? 42004 : 42005,1);
+      check(configuredStart===32,'Спочатку заблокуй ПЧ через RS, перш ніж повертати зовнішнє джерело пуску');
+    }
+    await write(2000,(controlWord&~forceMask)|value);
+    return 'Примусове керування підтверджено читанням.';
+  }
+  if (kind==='inputs' || kind==='restore') {
+    const [blocked] = await transport.read(1073,1);
+    check(stopped && !(controlWord&0x8000) && (controlWord&blockMask) && Boolean(blocked),
+      'Спочатку заблокуй ПЧ через RS і дочекайся зупинки');
+    check(kind==='restore' || Number.isInteger(value) && value>=0 && value<=63,'Некоректна маска DI');
+    await write(2003,kind==='restore' ? 0 : 0x8000|value);
+    return kind==='restore' ? 'Повернуто фізичні DI.' : 'Імітація DI активна.';
+  }
+  if (kind==='reset') {
+    check(fault!==0,'ПЧ не сигналізує активну аварію');
+    check(running===0 && !(modeWord&1) && startSignal===0 && !(controlWord&0x8000),
+      'Зніми команду пуску й дочекайся зупинки ПЧ');
+    const cleared = controlWord&~2;
+    await write(2000,cleared);
+    await write(2000,cleared|2);
+    await write(2000,cleared);
+    return 'Імпульс скидання підтверджено. Перевір стан «Аварія».';
+  }
+  check((sourceWord&0x1000)!==0,'RS не є активним джерелом Пуск/Стоп');
+  if (kind==='stop') {
+    await write(2000,controlWord&~0x8000);
+    return controlWord&blockMask ?
+      'RS-команду пуску знято. RS-блокування активне. Після зупинки натисни «Зняти RS-блокування».' :
+      'RS-команду пуску знято. Фактичну зупинку перевір за станом «Робота».';
+  }
+  check(kind==='start','Невідома команда');
+  check(running===0 && ready!==0 && fault===0 && !(modeWord&13),
+    'ПЧ має бути зупинений, готовий і без активної аварії чи блокування');
+  check(!(controlWord&0xf002),'На ПЧ є збережена команда Пуск, блокування або активний біт скидання');
+  if (sourceWord&0x2000) check(signed(reference)!==0,'Перед пуском задай ненульове завдання RS');
+  const [overrides] = await transport.read(2003,1);
+  check(Number.isInteger(overrides) && !(overrides&0x8000),'Перед пуском поверни фізичні DI');
+  const [blocked] = await transport.read(1073,1);
+  check(blocked===0,'ПЧ сигналізує блокування або стан PCH.073 невідомий');
+  await write(2000,controlWord|0x8000);
+  return 'Команду «Пуск» підтверджено читанням. Перевір стан «Робота».';
+}
+async function handleCommand(current,transport) {
+  const command = queuedCommand;
+  queuedCommand = null;
+  let writeAttempted = false;
+  let activeParameter = command.kind==='parameter' ? command.value : null;
+  let confirmed = 0;
+  const batch = command.kind==='parameterBatch';
+  const feedback = activeParameter || batch ? parameterFeedback : commandFeedback;
+  try {
+    const stillPermitted = () => session===current && (command.kind==='stop' || $('arm').checked) && (!batch || !parameterBatchCancelled);
+    if (!stillPermitted() && !batch) return;
+    let result;
+    if (current.mode==='demo') {
+      const sim = demonstration;
+      sim.manual = true;
+      if (command.kind==='start') sim.running = true;
+      if (command.kind==='stop') sim.running = false;
+      if (command.kind==='frequency') sim.frequency = command.value;
+      if (command.kind==='reset') sim.fault = false;
+      if (command.kind==='pid') sim.pid = command.value;
+      if (command.kind==='channel') sim.channel = sim.channel===1 ? 2 : 1;
+      if (command.kind==='block') Object.assign(sim,{running:false,block:command.value});
+      if (command.kind==='unblock') sim.block = 0;
+      if (command.kind==='force') sim.force = command.value;
+      if (command.kind==='inputs') sim.inputs = 0x8000|command.value;
+      if (command.kind==='restore') sim.inputs = 0;
+      result = command.kind==='stop' && sim.block ? 'Демо: команду пуску знято, RS-блокування активне.' :
+        command.kind==='unblock' ? 'Демо: RS-блокування знято.' : 'Команду виконано в деморежимі.';
+    } else if (batch) {
+      if (command.restore && stillPermitted()) await verifyRestoreTarget(transport,command.restore);
+      for (const entry of command.value) {
+        if (!stillPermitted()) break;
+        activeParameter = entry;
+        writeAttempted = false;
+        parameterFeedback('Підтверджено '+confirmed+' із '+command.value.length+' · запис '+parameterCatalog.get(entry.address).id+'…');
+        await executeDriveCommand(transport,{kind:'parameter',value:entry},stillPermitted,()=>{ writeAttempted = true; });
+        confirmed++;
+        writeAttempted = false;
+        if (session!==current) return;
+      }
+      result = confirmed===command.value.length ? 'Записано й підтверджено '+confirmed+' із '+command.value.length+'.' :
+        'Запис зупинено. Підтверджено '+confirmed+' із '+command.value.length+'. Решта змін очікують запису.';
+    } else result = await executeDriveCommand(transport,command,stillPermitted,()=>{ writeAttempted = true; });
+    if (session===current) {
+      feedback(result,'good');
+      if (command.kind==='force') showForceSelection(command.value);
+    }
+  } catch (error) {
+    if (session!==current) return;
+    const refused = error.code==='interlock' || error.code==='rs-denied';
+    if (error.code==='rs-denied' || (!refused && writeAttempted)) $('arm').checked = false;
+    if (activeParameter && writeAttempted) {
+      parameterValues.delete(activeParameter.address);
+      refreshParameterRows();
+    }
+    const message = refused ? error.message : writeAttempted ?
+      'Дозвіл команд скинуто: запис не підтверджено. '+error.message+'. Звір стан ПЧ перед повторенням.' :
+      'Запис не виконувався: перевірка стану ПЧ не вдалася. '+error.message;
+    const progress = batch ? 'Підтверджено '+confirmed+' із '+command.value.length+'. '+(activeParameter ? 'Параметр '+parameterCatalog.get(activeParameter.address).id+' · ' : '') : '';
+    if (error.code==='io') await stopSession(error.message);
+    if (batch && parameterBatchCancelled && refused) {
+      feedback('Запис зупинено. Підтверджено '+confirmed+' із '+command.value.length+'.');
+    } else feedback(progress+message,'bad');
+  } finally {
+    if (session===current) {
+      commandBusy = false;
+      if (batch) parameterBatchActive = parameterBatchCancelled = false;
+      updateControls();
+    }
+  }
+}
+async function run(current) {
+  const transport = source;
+  let probe = current.mode==='real';
+  while (session===current) {
+    if (queuedCommand) {
+      await handleCommand(current,transport);
+      current.nextSlowRead = 0;
+    }
+    if (session!==current) return;
+    const start = performance.now();
+    const signals = [...selected.values()];
+    const configuration = pollConfiguration(signals);
+    let words = new Map();
+    let retained = [];
+    if (current.mode==='demo') {
+      words = demoWords((Date.now()-current.start)/1000,signals);
+      status(words.size ? 'Демо · симуляція' : 'Демо · втрата зв’язку','demo',
+        words.size ? 'Сценарій насоса, дані змодельовано.' : 'Симульований тайм-аут відповіді.');
+    } else {
+      const issues = [];
+      let answered = false;
+      if (probe) {
+        try {
+          const [mode] = await transport.read(2006,1);
+          words.set(2006,mode);
+          answered = true;
+          probe = false;
+        } catch (error) {
+          if (session!==current) return;
+          if (error.code==='io') return stopSession(error.message);
+          answered = error.code==='exception';
+          if (answered) probe = false;
+          issues.push('2006 – '+error.message);
+        }
+      }
+      if (!probe) {
+        let consecutiveMisses = 0;
+        const includeSlow = start>=(current.nextSlowRead ?? 0);
+        const blocks = pollPlan(signals,[...words.keys()],includeSlow);
+        if (includeSlow) current.nextSlowRead = start+slowPollMaxAge;
+        else if (latest.get(1040)?.fresh) retained = slowPollAddresses.filter(address=>{
+          const reading = latest.get(address);
+          return reading?.fresh && Date.now()-reading.time<=slowPollMaxAge;
+        });
+        for (const {first,count} of blocks) {
+          try {
+            const values = await transport.read(first,count);
+            if (session!==current) return;
+            values.forEach((value,index)=>words.set(first+index,value));
+            answered = true;
+            consecutiveMisses = 0;
+          } catch (error) {
+            if (session!==current) return;
+            if (error.code==='io') return stopSession(error.message);
+            issues.push(first+(count>1 ? '–'+(first+count-1) : '')+' – '+error.message);
+            if (error.code==='exception') {
+              answered = true;
+              consecutiveMisses = 0;
+            } else if (++consecutiveMisses>=2) break;
+          }
+        }
+      }
+      if (session!==current) return;
+      if (!words.has(1040) || !words.has(2006)) retained = [];
+      status(answered ? 'ПЧ відповідає' : 'ПЧ не відповідає',answered ? 'good' : 'bad',
+        issues.length ? issues.join(' · ') : 'Обмін Modbus RTU · FC03');
+    }
+    const ended = performance.now();
+    record(Date.now(),words,signals,retained);
+    if (configuration.key===pollConfiguration().key) trackPoll(configuration,ended);
+    if (current.mode==='real' && !queuedCommand) {
+      const deadline = start+getPeriod(configuration);
+      for (let step=0;step<4 && session===current && !queuedCommand;step++) {
+        if (pendingParameterAddress!==undefined && parameterReadQueue.length) await readParameterStep(current,transport);
+        else if (parameterMapJob) await readParameterMapStep(current,transport);
+        else if (parameterReadQueue.length) await readParameterStep(current,transport);
+        else if (parameterGroupScan) await readParameterGroupStep(current,transport);
+        else break;
+        if (performance.now()+20>=deadline) break;
+      }
+      if (session!==current) return;
+    }
+    await waitForPoll(Math.max(0,getPeriod()-(performance.now()-start)));
+  }
+}
+const parameterCatalog = new Map();
+const parameterValues = new Map();
+const parameterRowNodes = new Map();
+let parameterReadQueue = [];
+let parameterReadGeneration = 0;
+let pendingParameterAddress;
+let parameterGroupScan = null;
+const parameterDrafts = new Map();
+const parameterGroupNodes = new Map();
+const parameterGroupTitles = ['Поточні величини','Конфігурація привода','Завдання та керування',
+  'Аварії й захисти','Доступ, RS та індикація','Насоси та функції ПЛК','Універсальні блоки ПЛК'];
+let parameterBatchCancelled = false;
+let parameterBatchActive = false;
+let reviewedParameterChanges = [];
+let reviewedParameterRestore = null;
+const parameterPageSize = 20;
+const parameterPanelUnits = ['', 'В', 'А', 'Гц', 'об/хв', '%', 'Ом', 'кГц', '°C', 'кВт',
+  'Н·м', 'кВт·год', 'мГн', 'с', 'год', 'мс', 'мОм', 'м/с', 'шт.', 'імп.', 'гПа', 'бар',
+  'м', 'мм', 'м/хв', 'Вб', 'МВт·год', 'квар', 'хв'];
+
+// Upper-case PLC ports take a literal; lower-case ports take a PCH source (Appendix B).
+const plcFunctions = [
+  ['Копіювання','a'], ['Сума','abc'], ['Множення / ділення','abc'], ['Інверсія суми','ab'],
+  ['Модуль суми','ab'], ['Сума / різниця','abc'], ['Обмеження сигналами','abc'],
+  ['Обмеження параметрами','aBC'], ['Зміщення','aB'], ['Перемикач 2 → 1','abc'],
+  ['Пороговий перемикач','aBc'], ['Порівняння з добутком','abC'], ['Порівняння зі зміщенням','abC'],
+  ['Вікно порівняння','abC'], ['Гістерезис','abC'], ['Масштабування 0–1000','aBC'],
+  ['Нормування до 0–1000','aBC'], ['Вибірка / зберігання','ab'], ['АБО (OR)','abc'], ['І (AND)','abc'],
+  ['Виключне АБО (XOR)','ab'], ['АБО-НІ (NOR)','abc'], ['І-НІ (NAND)','abc'], ['НІ (NOT)','a'],
+  ['RS-тригер','ab'], ['D-тригер','abc'], ['Лічильник вгору/вниз','abc'], ['Лічильник вниз','abc'],
+  ['Лічильник за модулем','abc'], ['Дільник частоти','abC'], ['Лічильник угору','abc'],
+  ['Бінарний декодер','abc'], ['Одновібратор з параметрами','aBC'], ['Одновібратор з PCH','abc'],
+  ['Генератор','aBC'], ['Затриманий імпульс','aBC'], ['Затримка вимкнення','abC'],
+  ['Затримка увімкнення','abC'], ['Аналоговий фільтр','abC'], ['Швидкодіючий лічильник','aBc'],
+  ['Секвенсор',''], ['Мультиплексор MUX1',''], ['Мультиплексор MUX2',''], ['Формувач кривої X → Y',''],
+  null, ['Читання параметра','AB'], ['Читання Modbus','AB'], ['Запис Modbus','ABc'],
+  ['Читання CAN','AB'], ['Запис CAN','ABc']
+];
+const plcFunctionNames = plcFunctions.map(entry=>entry?.[0]);
+
+function addParameter(id,name,format,displayFormat) {
+  const [group,index] = id.split('.').map(Number);
+  const address = 40000+group*1000+index;
+  parameterCatalog.set(address,{id,name,format,displayFormat,group,index,address});
+}
+function registerParameterDisplay() {
+  // TWERD MFC710 OP-11, Appendices A–C. Display metadata is independent of write validation.
+  const numbers = (unit='',divisor=1,min=0) => ({unit,divisor,min});
+  const time = numbers('с',10), preciseTime = numbers('с',100);
+  const frequency = numbers('Гц',10), percent = numbers('%',10), signedPercent = numbers('%',10,-1);
+  const integer = numbers(), signedInteger = numbers('',1,-1);
+  const options = (...labels) => ({options:labels});
+  const yesNo = options('Ні','Так');
+  const reaction = options('Без реакції','Попередження','Аварія');
+  const reactionWithHold = options(...reaction.options,'Остання частота','Постійна частота 7');
+  const pch = {kind:'pch'};
+  const parameter = {kind:'group0'};
+  const panelUnits = options(...parameterPanelUnits.map(unit=>unit || 'Без одиниці'));
+  const analogVoltage = options('0–10 В','10–0 В','2–10 В','10–2 В');
+  const analogMode = options('0–10 В / 0–20 мА','10–0 В / 20–0 мА','2–10 В / 4–20 мА','10–2 В / 20–4 мА');
+  const motorChoice = options(...Array.from({length:5},(_,i)=>'Двигун '+i),'За параметром 1.26');
+  const motorMemory = options('Без дії',null,...Array.from({length:4},(_,i)=>'Двигун '+(i+1)));
+  const userRef = options('Вимкнено','UR1','UR2','UR3','UR4');
+  const unknownScale = unit => ({kind:'unknownScale',unit});
+  const add = (group,rows) => {
+    for (const [index,name,displayFormat] of rows) {
+      const current = parameterCatalog.get(40000+group*1000+index);
+      addParameter(group+'.'+index,name || current?.name,current?.format,displayFormat || current?.displayFormat);
+    }
+  };
+  const series = (first,count,name,format) => Array.from({length:count},(_,i)=>[first+i,name(i),format]);
+
+  add(0,[
+    [1,null,{kind:'panel',unitIndex:44026}],[3,null,numbers('об/хв',1,-1)],
+    [6,null,signedPercent],[9,null,percent],[11,null,unknownScale('В')],
+    [12,null,unknownScale('кВт')],[13,null,unknownScale('кВт·год')],
+    [17,null,unknownScale('cos φ')],[18,'Потік статора',unknownScale('Вб')],
+    [19,null,numbers('об/хв',1,-1)],...series(20,3,()=>null,unknownScale('°C')),
+    [32,null,signedPercent],[33,null,signedPercent],[34,null,{kind:'code'}],
+    [35,null,numbers('год')],[38,null,numbers('хв')],
+    ...series(40,8,()=>null,signedPercent),
+    [48,null,{kind:'mask',prefix:'DI',width:6}],[49,null,{kind:'mask',prefix:'DO',width:4}],
+    [50,null,{kind:'hex'}],[51,null,{kind:'version'}],[52,null,{kind:'rsReference'}],[53,null,percent],
+    ...Array.from({length:4},(_,i)=>[54+i,null,{kind:'panel',unitIndex:44061+i*3}]),
+    [60,null,integer],...series(70,5,()=>null,unknownScale('А')),
+    [75,null,unknownScale('В')],[76,null,unknownScale('°C')],[77,null,unknownScale('°C')],
+    [78,null,{kind:'code'}],[79,null,{kind:'code'}]
+  ]);
+  add(1,[
+    [10,'Ідентифікація двигуна',options('Вимкнено','На зупиненому двигуні','Тест на 25 Гц','Тест на 50 Гц')],
+    [11,'Опір обмоток статора',unknownScale('Ом')],[12,'Опір ротора',unknownScale('Ом')],
+    [13,'Головна індуктивність',unknownScale('мГн')],[14,'Індуктивність статора',unknownScale('мГн')],
+    [15,'Індуктивність ротора',unknownScale('мГн')],[16,'Додаткова індуктивність',unknownScale('мГн')],
+    [18,'Збереження даних двигуна',motorMemory],[19,'Читання даних двигуна',motorMemory],
+    [21,'Частота комутації',numbers('кГц',10)],[22,'Випадкова модуляція',numbers('%')],
+    [25,'Вибір активного двигуна',motorChoice],[26,'Джерело вибору двигуна',pch],
+    [35,'Округлення кривої розгону й гальмування',numbers('%')],[36,'Джерело вибору розгону й гальмування 1/2',pch],
+    [43,'Межа моменту в режимі двигуна',percent],[44,'Межа моменту в генераторному режимі',percent],
+    [45,'Джерело прямого завдання моменту',pch],[50,'Напруга U0 характеристики U/f',percent],
+    [51,'Частота F0 характеристики U/f',percent],[52,'Напруга U1 характеристики U/f',percent],
+    [53,'Частота F1 характеристики U/f',percent],[54,'Компенсація падіння напруги',percent],
+    [55,'Мінімальна частота пуску',frequency],[60,'Компенсація ковзання',yesNo],
+    [61,'Підхоплення двигуна на ходу',options('Вимкнено','Один напрямок від fзад або fмакс','Обидва напрямки від fзад або fмакс','Один напрямок від fмакс','Обидва напрямки від fмакс')],
+    [62,'Обмеження перенапруги в ланці DC',yesNo],[63,'Керування за низькою напругою DC (сервісний)'],
+    [64,'Спосіб зупинки',options('За рампою','Вибіг')],[65,'Дозволений напрямок',options('Обидва напрямки','Праворуч','Ліворуч')],
+    [66,'Напруга гальмування постійним струмом',percent],[67,'Час гальмування постійним струмом',time],
+    [68,'Мінімальний час зупинки',preciseTime],[69,'Джерело увімкнення гальмування постійним струмом',pch],
+    [70,'Коефіцієнт підсилення регулятора швидкості',integer],[71,'Час інтегрування регулятора швидкості',preciseTime],
+    [72,'Коефіцієнт підсилення регулятора моменту',numbers('',100)],[73,'Час інтегрування регулятора моменту',numbers('',100)],
+    [74,'Коефіцієнт підсилення регулятора потоку',integer],[75,'Час інтегрування регулятора потоку',numbers('',1000)],
+    [80,'Кількість імпульсів енкодера на оберт',numbers('імп/об')],[81,'Інверсія напрямку енкодера',yesNo],
+    [82,'Зміщення енкодера (сервісний)'],[83,'Нуль енкодера (сервісний)'],
+    [85,'Початкова напруга підхоплення',percent],[86,'Час підхоплення',time],
+    ...series(90,6,i=>(i%2 ? 'Верхня' : 'Нижня')+' межа виключеної частоти '+(1+Math.floor(i/2)),frequency),
+    [96,'Джерело увімкнення сушіння двигуна',pch],[97,'Межа струму сушіння',numbers('%')],
+    [98,'Межа напруги сушіння',numbers('%')],[99,'Граничний час сушіння',numbers('год',10)],
+    [100,'Режим активного випрямляча',options('Вимкнено','У стані готовності','У стані роботи','Пуск двигуна після пуску AcR')],
+    [101,'Уставка напруги ланки DC',numbers('В')],[102,'Уставка реактивного струму AcR',signedPercent],
+    [103,'Межа струму AcR',percent],[104,'Індуктивність мережевих дроселів',numbers('мГн',1000)],
+    ...series(105,6,i=>['Kp','Ki'][i%2]+' регулятора AcR '+['Udc','Id','Iq'][Math.floor(i/2)],integer),
+    [112,'Поправка частоти комутації AcR (сервісний)',numbers('Гц')],[113,'Режим синхронізації (сервісний)',{kind:'code'}]
+  ]);
+  add(2,[
+    ...[1,2,3,4,5].map(index=>[index,null,pch]),
+    [6,'Джерело напрямку A',pch],[7,'Джерело напрямку B',pch],
+    [8,null,options('DI1: пуск/стоп, DI2: напрямок','DI1: пуск праворуч, DI2: пуск ліворуч','DI1: пуск по фронту, DI2: стоп по спаду','DI1: пуск по фронту, DI2: стоп по спаду, DI3: напрямок','DI1: пуск/стоп')],
+    [9,'Джерело завдання моменту A',pch],[10,'Джерело завдання моменту B',pch],
+    [14,'Зупинка нижче мінімальної частоти',yesNo],[15,'Скидання місцевої команди пуску',yesNo],
+    [16,'Затримка підключення завдання',time],[18,'Блокування автопуску',yesNo],
+    [20,'Джерело збільшення мотопотенціометра',pch],[21,'Джерело зменшення мотопотенціометра',pch],
+    [22,'Режим мотопотенціометра',options('Скидання при стопі','Збереження, зміна в роботі','Відстеження поточного завдання','Збереження, зміна також на зупинці')],
+    [23,'Час зміни мотопотенціометра',time],
+    ...series(30,3,i=>'Джерело біта W'+(i+1)+' вибору постійної частоти',pch),
+    [40,null,analogVoltage],[41,null,analogMode],[42,null,analogMode],
+    ...series(43,3,i=>'Масштаб AI'+i,signedPercent),...series(46,3,i=>'Зміщення AI'+i,signedPercent),
+    ...series(49,3,i=>'Стала часу фільтра AI'+i,preciseTime),
+    [60,null,pch],[61,null,pch],[62,'Інверсія похибки ПІД',yesNo],
+    [63,'Коефіцієнт P регулятора ПІД',numbers('%')],[64,'Стала часу I регулятора ПІД',preciseTime],
+    [65,'Коефіцієнт D регулятора ПІД',numbers('%')],[66,'Верхня межа виходу ПІД',percent],
+    [67,'Нижня межа виходу ПІД',signedPercent],
+    [68,'Поведінка виходу ПІД при зупинці',options('Скидання виходу','ПІД активний постійно','Відстеження поточного завдання')],
+    [69,'Тип алгоритму ПІД (сервісний)',{kind:'code'}],[70,'Затримка переходу в сон',numbers('с')],
+    [71,'Поріг виходу зі сну',percent],
+    ...series(80,2,i=>'Джерело AO'+(i+1),pch),...series(82,2,i=>'Конфігурація AO'+(i+1),analogMode),
+    ...series(84,2,i=>'Масштаб AO'+(i+1),percent),...series(86,2,i=>'Стала часу фільтра AO'+(i+1),preciseTime),
+    ...series(90,8,i=>'Функція '+(i%2+1)+' виходу '+['K1','K2','K3','DO4'][Math.floor(i/2)],pch),
+    [101,'Затримка відпускання зовнішнього гальма',time],[102,'Поріг швидкості для гальма',numbers('об/хв')],
+    [103,'Час створення моменту до команди затискання гальма',time],
+    [110,null,pch],[111,'Джерело зовнішнього блокування',pch],[112,'Джерело аварійної зупинки',pch],
+    [113,'Джерело дозволу AcR',pch]
+  ]);
+  add(3,[
+    [1,'Захист за термореле двигуна',yesNo],[2,'Тепловий захист I²t',yesNo],
+    [3,'Уставка теплового захисту двигуна',percent],[4,'Уставка теплового захисту на нульовій швидкості',percent],
+    [5,'Стала часу нагрівання двигуна',numbers('хв')],[6,'Скидання лічильника енергії',yesNo],
+    [10,null,pch],[11,null,pch],
+    ...series(12,2,i=>'Активний рівень зовнішньої аварії '+(i+1),options('Низький','Високий')),
+    [20,'Дозвіл контролю обриву аналогового входу',pch],
+    [23,'Реакція на обрив аналогового сигналу',reactionWithHold],[30,'Реакція на несиметрію',reaction],
+    [35,'Поріг струму витоку на землю',percent],[40,'Реакція на стопоріння',reaction],
+    [41,'Частота визначення стопоріння',frequency],[42,'Час визначення стопоріння',numbers('с')],
+    [45,'Реакція на відхилення швидкості',reaction],[46,'Допустиме відхилення швидкості',numbers('об/хв')],
+    [47,'Час допустимого відхилення швидкості',time],[50,'Реакція на недовантаження',reaction],
+    [51,'Час визначення недовантаження',numbers('с')],[52,'Поріг моменту недовантаження',percent],
+    [55,'Допустимий час роботи гальмівного резистора',numbers('с')],
+    [56,'Реакція на перевантаження гальмівного резистора',reaction],[57,'Реакція на втрату зв’язку з AcR',reaction],
+    [60,null,reactionWithHold],[65,'Реакція на втрату зв’язку з OP‑11',reactionWithHold],
+    [66,'Час очікування зв’язку з OP‑11',numbers('с')],[70,'Джерело зовнішнього скидання аварії',pch],
+    [72,'Вікно обліку автоматичних перезапусків',time],[73,'Затримка автоматичного перезапуску',time],
+    ...['низької напруги DC','високої напруги DC','надструму','перегріву','обриву аналогового сигналу']
+      .map((name,i)=>[74+i,'Автоперезапуск після '+name,yesNo]),
+    ...series(80,32,i=>(i%2 ? 'Напрацювання на момент аварії ' : 'Аварія ')+(1+Math.floor(i/2)))
+      .map(([index,name])=>[index,name,index%2 ? numbers('год') : {kind:'fault'}])
+  ]);
+  add(4,[
+    [1,null,yesNo],[2,'Рівень доступу / код',{kind:'code'}],[3,'Новий код доступу',{kind:'code'}],
+    [4,'Завантаження заводських налаштувань',{kind:'code'}],[5,'Збереження змін в EEPROM',yesNo],
+    [6,null,yesNo],[7,null,pch],[8,null,options('38 400 біт/с','57 600 біт/с','9 600 біт/с','19 200 біт/с')],
+    [9,null,integer],...series(10,4,i=>'Рядок '+(i%2+1)+' дисплея в стані '+(i<2 ? 'STOP' : 'RUN'),parameter),
+    ...series(14,7,i=>'Параметр швидкого перегляду SP'+(i+1),parameter),
+    [21,'Контраст дисплея',integer],[22,'Налаштування годинника RTC',{kind:'code'}],
+    [26,null,panelUnits],[28,'Масштаб лічильника обертів',integer],[29,'Джерело скидання лічильника обертів',pch],
+    [30,'Вибір користувацької уставки',userRef],[31,'Номер активної користувацької уставки',userRef],
+    ...series(32,4,i=>'Значення користувацької уставки UR'+(i+1)).map(([index,name])=>[index,name,{kind:'panel',unitIndex:44038+(index-32)*4}]),
+    ...Array.from({length:4},(_,i)=>[
+      [36+i*4,'Мінімум UR'+(i+1),{kind:'panel',unitIndex:44038+i*4}],
+      [37+i*4,'Максимум UR'+(i+1),{kind:'panel',unitIndex:44038+i*4}],
+      [38+i*4,'Одиниця UR'+(i+1),panelUnits],[39+i*4,'Десяткові знаки UR'+(i+1),integer],
+      [60+i*3,'Джерело величини U'+(i+1),pch],[61+i*3,'Одиниця величини U'+(i+1),panelUnits],
+      [62+i*3,'Десяткові знаки величини U'+(i+1),integer]
+    ]).flat(),
+    [72,'Швидкість CAN',{options:{0:'62,5 кбіт/с',1:'125 кбіт/с',3:'250 кбіт/с',5:'500 кбіт/с',7:'1 Мбіт/с'}}],
+    [73,'Тайм-аут CAN MTo (сервісний)',numbers('мс')],[74,'Тайм-аут CAN STo (сервісний)',time],
+    [75,'Номер вузла призначення CAN',integer],...series(80,8,i=>'Джерело моніторингу ACT '+(i+1),{kind:'code'})
+  ]);
+  add(5,[
+    [1,'Джерело лінійної швидкості',pch],[2,'Джерело завдання зусилля',pch],
+    [3,'Максимальна лінійна швидкість',numbers('м/с',100)],[4,'Мінімальний діаметр рулону',numbers('мм',10)],
+    [5,'Максимальний діаметр рулону',numbers('мм',10)],[6,'Момент тертя',percent],
+    [10,'Керування групою насосів',yesNo],...series(11,5,()=>null,options('Від мережі','Від ПЧ або мережі')),
+    ...series(16,5,()=>null,pch),[21,'Інтервал заміни ведучого насоса',numbers('год')],
+    [22,'Затримка увімкнення додаткового насоса',time],[23,'Затримка вимкнення додаткового насоса',time],
+    [24,'Поріг відтермінування заміни насоса',pch],[25,'Частота підключення додаткового насоса',frequency],
+    [26,'Гістерезис підключення додаткового насоса',percent],[27,'Джерело завдання групи насосів',pch],
+    [28,'Максимум одночасно працюючих насосів',integer],[29,'Джерело активації насоса 6',pch],
+    [30,'Мінімальна пауза роботи насоса',numbers('с')],[40,'Джерело увімкнення секвенсора',pch],
+    [41,'Сервісний параметр секвенсора'],[42,'Кількість станів секвенсора',integer],
+    ...series(43,8,i=>'Джерело часу стану '+(i+1),pch),
+    ...['Наступний стан','Попередній стан','Скидання','Встановлення стану','Номер заданого стану']
+      .map((name,i)=>[51+i,'Секвенсор · '+name,pch]),
+    ...Array.from({length:2},(_,i)=>{
+      const start = 60+i*20, name = 'MUX'+(i+1);
+      return [[start,name+' · дозвіл',pch],[start+1,name+' · сервісний параметр'],
+        [start+2,name+' · вихід у вимкненому стані',signedInteger],[start+3,name+' · вибір входу',pch],
+        ...series(start+4,8,j=>name+' · вхід '+(j+1),pch)];
+    }).flat(),
+    [100,'Сервісний параметр CSU'],[101,'Джерело входу X формувача CSU',pch],
+    ...series(102,10,i=>'Координата '+(i%2 ? 'Y' : 'X')+' точки '+(1+Math.floor(i/2))+' CSU',signedInteger),
+    [145,null,integer]
+  ]);
+  add(6,Array.from({length:48},(_,i)=>{
+    const first = i*4+1;
+    return [[first,null,{options:plcFunctionNames}],...series(first+1,3,()=>null,{kind:'plcInput'})];
+  }).flat());
+}
+function registerParameters() {
+  const decimal = (min,max,unit) => ({min,max,unit,divisor:10});
+  const integer = (min,max,unit='') => ({min,max,unit,divisor:1});
+  const choices = (labels,first=0) => ({options:Object.fromEntries(labels.map((label,i)=>[first+i,label])),divisor:1,unit:''});
+  const reference = choices(['Панель OP‑11','AI0','AI1','AI2','Вихід ПІД','Мотопотенціометр','RS'],133);
+  const start = choices(['Дискретні входи','Панель OP‑11','RS'],30);
+  for (const signal of group0) addParameter(signal.param,signal.name);
+  for (const [index,name] of [[1,'Швидкість процесу'],[3,'Задана швидкість двигуна'],[6,'Момент двигуна'],
+    [11,'Напруга мережі'],[12,'Вихідна потужність'],[13,'Енергія двигуна'],[17,'Коефіцієнт потужності'],
+    [18,'Потік статора'],[19,'Швидкість за енкодером'],[20,'Температура радіатора 1'],[21,'Температура радіатора 2'],
+    [22,'Температура радіатора 3'],[32,'Помилка ПІД'],[33,'Вихід ПІД'],[34,'Стан групи насосів'],
+    [35,'Напрацювання'],[36,'Дата RTC'],[37,'Час RTC'],[38,'Час до кінця сушіння'],
+    [40,'Аналоговий вхід AI0'],[41,'Аналоговий вхід AI1'],[42,'Аналоговий вхід AI2'],
+    [43,'Аналоговий вихід AO1'],[44,'Аналоговий вихід AO2'],[45,'Аналогове завдання A0'],
+    [46,'Аналогове завдання A1'],[47,'Аналогове завдання A2'],[48,'Стани DI'],[49,'Стани DO'],
+    [50,'Слово керування RS'],[51,'Версія ПЗ'],[52,'Завдання через RS'],[53,'Завдання ПІД через RS'],
+    [54,'Значення користувача 1'],[55,'Значення користувача 2'],[56,'Значення користувача 3'],
+    [57,'Значення користувача 4'],[60,'Активний двигун'],[70,'AcR · струм L1'],[71,'AcR · струм L2'],
+    [72,'AcR · струм L3'],[73,'AcR · активний струм'],[74,'AcR · реактивний струм'],[75,'AcR · напруга мережі'],
+    [76,'AcR · температура 1'],[77,'AcR · температура 2'],[78,'AcR · код аварії'],[79,'AcR · версія ПЗ']]) addParameter('0.'+index,name);
+  // Display resolution follows the parameter table in TWERD MFC710 OP-11, Appendix C.
+  for (const [id,name,format,displayFormat] of [
+    ['1.1','Номінальна потужність двигуна',null,{divisor:10,unit:'кВт'}],
+    ['1.2','Номінальна швидкість двигуна',null,{divisor:1,unit:'об/хв'}],
+    ['1.3','Номінальний струм двигуна',null,{divisor:100,unit:'А'}],
+    ['1.4','Номінальна напруга двигуна',null,{divisor:1,unit:'В'}],
+    ['1.5','Номінальна частота двигуна',null,{divisor:10,unit:'Гц'}],
+    ['1.6','Номінальний cos φ двигуна',null,{divisor:100}],
+    ['1.20','Алгоритм керування двигуном',null,choices(['U/f лінійний','U/f квадратичний','Векторний без енкодера','Векторний з енкодером'])],
+    ['1.30','Розгін 1',decimal(0,600,'с')],['1.31','Гальмування 1',decimal(0,600,'с')],
+    ['1.32','Розгін 2',decimal(0,600,'с')],['1.33','Гальмування 2',decimal(0,600,'с')],
+    ['1.34','Час штатної зупинки',decimal(0,600,'с')],['1.40','Максимальна вихідна частота',decimal(0,600,'Гц')],
+    ['1.41','Обмеження струму в режимі двигуна',decimal(0,180,'%')],['1.42','Обмеження струму в генераторному режимі',decimal(0,180,'%')],
+    ['1.64','Спосіб штатної зупинки'],['1.65','Дозвіл напрямків обертання'],
+    ['2.1','Джерело перемикання A/B',choices(['Канал A','DI1','DI2','DI3','DI4','DI5','DI6','Канал B'])],
+    ['2.2','Джерело завдання A',reference],['2.3','Джерело завдання B',reference],
+    ['2.4','Джерело пуску A',start],['2.5','Джерело пуску B',start],
+    ['2.8','Режим пуску з дискретних входів',integer(0,4)],
+    ['2.11','Частота завдання, що відповідає 0 %',decimal(-550,550,'Гц')],
+    ['2.12','Частота завдання, що відповідає 100 %',decimal(0,550,'Гц')],
+    ['2.13','Мінімальний модуль частоти завдання',decimal(0,550,'Гц')],
+    ...Array.from({length:7},(_,i)=>['2.'+(33+i),'Постійна частота '+(i+1),decimal(-550,550,'Гц')]),
+    ['2.40','Конфігурація AI0'],['2.41','Конфігурація AI1'],['2.42','Конфігурація AI2'],
+    ['2.60','Джерело уставки ПІД',choices(['Мотопотенціометр ПІД','RS','Панель OP‑11','Завдання A0','Завдання A1','Завдання A2'],141)],
+    ['2.61','Джерело зворотного зв’язку ПІД',choices(['Завдання A0','Завдання A1','Завдання A2'],144)],
+    ['2.90','Функція K1'],['2.91','Функція K2'],['2.92','Функція K3'],['2.96','Функція DO4'],
+    ['2.98','Поріг частоти 1',decimal(0,550,'Гц')],['2.99','Поріг частоти 2',decimal(0,550,'Гц')],
+    ['2.100','Поріг температури радіатора',integer(0,80,'°C')],
+    ['2.110','Джерело дозволу роботи привода'],
+    ['3.10','Джерело зовнішньої аварії 1'],['3.11','Джерело зовнішньої аварії 2'],
+    ['3.60','Реакція на втрату RS',choices(['Без реакції','Попередження','Аварія','Остання частота','Постійна частота 7'])],
+    ['3.61','Час очікування RS',integer(0,600,'с')],
+    ['3.71','Кількість автоматичних рестартів',integer(0,6)],
+    ['4.1','Блокування змін параметрів'],['4.6','Доступність PCH'],['4.7','Джерело дозволу RS'],
+    ['4.8','Швидкість RS'],['4.9','Адреса Modbus'],
+    ['4.23','Мова панелі OP‑11',choices(['Польська','Англійська'])],
+    ['4.25','Масштаб швидкості процесу',decimal(0,500,'%')],
+    ['4.26','Одиниця швидкості процесу'],['4.27','Десяткові знаки швидкості процесу',integer(0,3)],
+    ...Array.from({length:4},(_,i)=>['4.'+(80+i),'Джерело актуального значення '+(i+1)]),
+    ...Array.from({length:5},(_,i)=>['5.'+(11+i),'Конфігурація насоса '+(i+1)]),
+    ...Array.from({length:5},(_,i)=>['5.'+(16+i),'Дозвіл насоса '+(i+1)]),
+    ...Array.from({length:24},(_,i)=>['5.'+(120+i),'Константа ПЛК '+(i+1),integer(-32000,32000)]),
+    ['5.144','Дозвіл ПЛК',choices(['Вимкнено','Увімкнено'])],['5.145','Кількість виконуваних блоків ПЛК']
+  ]) addParameter(id,name,format,displayFormat);
+  for (let block=1;block<=48;block++) {
+    const base = (block-1)*4+1;
+    addParameter('6.'+base,'Функція блоку '+block,integer(0,39));
+    ['A','B','C'].forEach((port,i)=>addParameter('6.'+(base+i+1),'Вхід '+port+' блоку '+block,integer(0,511,'PCH')));
+  }
+  registerParameterDisplay();
+}
+function encodeParameter(spec,input) {
+  if (!spec?.format || !/^[+-]?\d+(?:[.,]\d+)?$/.test(input)) return undefined;
+  const {min,max,options,divisor} = spec.format;
+  const value = Number(input.replace(',','.'));
+  if (options ? !Object.hasOwn(options,value) : value<min || value>max) return undefined;
+  const raw = Math.round(value*divisor);
+  if (Math.abs(raw-value*divisor)>1e-7 || raw< -32768 || raw>65535) return undefined;
+  return raw&0xffff;
+}
+function parameterPchText(word,label) {
+  const source = catalog[word];
+  return source ? source.code+' · '+(label || source.name) : word+' · код джерела';
+}
+function parameterWordIndex(map) {
+  return new Map(map.parameters.map(({address,word})=>[address,word]));
+}
+function parameterText(spec,word,readWord=address=>parameterValues.get(address)?.word) {
+  if (word===undefined) return '—';
+  const form = spec?.displayFormat || spec?.format;
+  if (form?.options) return form.options[word] ? word+' · '+form.options[word] : word+' · нерозпізнаний код';
+  const quantity = (value,unit='')=>numberText(value)+(unit ? ' '+unit : '');
+  if (form?.divisor) return quantity((form.min<0 ? signed(word) : word)/form.divisor,form.unit);
+  switch (form?.kind) {
+    case 'pch': return parameterPchText(word,spec.format?.options?.[word]);
+    case 'group0': {
+      const source = parameterCatalog.get(40000+word);
+      return source ? source.id+' · '+source.name : word+' · код параметра групи 0';
+    }
+    case 'mask': {
+      const active = Array.from({length:form.width},(_,i)=>i)
+        .filter(i=>word&(1<<i)).map(i=>form.prefix+(i+1));
+      return active.length ? active.join(', ') : 'Усі вимкнені';
+    }
+    case 'hex': return '0x'+word.toString(16).toUpperCase().padStart(4,'0')+' · слово керування';
+    case 'version': return (word/100).toFixed(2);
+    case 'fault': return word===0 ? '0 · немає аварії' : word+' · '+(eventDescriptions[word] || 'код аварії');
+    case 'code': return word+' · код';
+    case 'unknownScale': return word+' · сире слово (одиниця після перерахунку: '+form.unit+')';
+    case 'panel': {
+      const unit = parameterPanelUnits[readWord(form.unitIndex)];
+      const precision = readWord(form.unitIndex+1);
+      return unit!==undefined && precision>=0 && precision<=3 ? quantity(signed(word)/10**precision,unit)
+        : word+' · відсутні налаштування одиниці або точності';
+    }
+    case 'rsReference': {
+      const mode = readWord(41020);
+      if (mode===0 || mode===1) return quantity(signed(word)/10,'Гц');
+      if (mode===2 || mode===3) return quantity(signed(word),'об/хв');
+      return word+' · потрібен режим керування 1.20';
+    }
+    case 'plcInput': {
+      const port = (spec.index-1)%4;
+      const layout = plcFunctions[readWord(spec.address-port)]?.[1];
+      const letter = 'ABC'[port-1];
+      if (layout===undefined) return word+' · потрібна функція блоку';
+      if (layout.includes(letter.toLowerCase())) return parameterPchText(word);
+      if (layout.includes(letter)) return word+' · значення входу '+letter;
+      return word+' · вхід не використовується';
+    }
+  }
+  if (spec?.group===0) {
+    const signal = scaledParameters.find(item=>item.address===spec.address);
+    const unit = signal && physicalDisplayUnit(signal);
+    if (unit) return quantity(displayValue(signal,decode(signal,word)),unit);
+    if (signal?.unit) return word+' · сире слово (одиниця після перерахунку: '+signal.unit+')';
+  }
+  return word+' · сире слово';
+}
+function parameterFeedback(message,tone='') {
+  $('parameterStatus').textContent = message;
+  $('parameterStatus').dataset.tone = tone;
+}
+function selectedParameterGroup(group) {
+  return [...parameterCatalog.values()].filter(spec=>spec.group===group).sort((a,b)=>a.index-b.index);
+}
+function visibleParameters(section) {
+  const {group,page} = section;
+  return selectedParameterGroup(group).slice(page*parameterPageSize,(page+1)*parameterPageSize);
+}
+function parameterIdle() {
+  const mode = currentWord(2006), control = currentWord(2000), overrides = currentWord(2003);
+  return currentWord(1037)===0 && currentWord(1061)===0 && mode!==undefined && !(mode&1) &&
+    control!==undefined && !(control&0x8000) && overrides!==undefined && !(overrides&0x8000);
+}
+function canWriteParameters() {
+  return session?.mode==='real' && !commandBusy && !parameterMapJob && !parameterGroupScan &&
+    $('arm').checked && Boolean(currentWord(1040)) && parameterIdle();
+}
+function updateParameterControls() {
+  const canRead = session?.mode==='real' && !commandBusy;
+  for (const {read,scan} of parameterGroupNodes.values()) {
+    read.disabled = !canRead;
+    scan.disabled = !canRead || Boolean(parameterGroupScan || parameterMapJob);
+  }
+  $('stopParameterScan').hidden = !parameterGroupScan;
+  const writable = canWriteParameters();
+  $('writeAllParameters').disabled = !writable || !parameterDrafts.size;
+  updateParameterMapControls();
+  $('cancelParameterBatch').hidden = !parameterBatchActive;
+  $('cancelParameterBatch').disabled = parameterBatchCancelled;
+  $('parameterDraftCount').textContent = parameterDrafts.size ? 'Змінено: '+parameterDrafts.size : '';
+  for (const [address,{input,button}] of parameterRowNodes) {
+    if (!input) continue;
+    const enabled = writable && parameterValues.get(address)?.word!==undefined;
+    input.disabled = button.disabled = !enabled;
+  }
+}
+function refreshParameterRows() {
+  for (const [address,{spec,value}] of parameterRowNodes) {
+    const data = parameterValues.get(address);
+    value.textContent = data?.error || parameterText(spec,data?.word);
+  }
+  updateParameterControls();
+}
+function renderParameters(section) {
+  const {body,group,page,previous,next,pageLabel} = section;
+  section.rendered = true;
+  body.replaceChildren();
+  for (const [address,{spec}] of parameterRowNodes) if (spec.group===group) parameterRowNodes.delete(address);
+  for (const spec of visibleParameters(section)) {
+    const row = body.insertRow();
+    row.insertCell().textContent = spec.id;
+    row.insertCell().textContent = spec.name;
+    const value = row.insertCell();
+    const edit = row.insertCell();
+    const actions = row.insertCell();
+    let input,button;
+    if (spec.format) {
+      const {options,min,max,unit,divisor} = spec.format;
+      input = document.createElement(options ? 'select' : 'input');
+      input.setAttribute('aria-label','Нове значення '+spec.id+' · '+spec.name);
+      if (options) {
+        input.add(new Option('Вибрати…',''));
+        Object.entries(options).forEach(([code,label])=>input.add(new Option(code+' · '+label,code)));
+      } else {
+        input.inputMode = 'decimal';
+        input.placeholder = min+'…'+max+(unit ? ' '+unit : '');
+        input.title = 'Крок '+numberText(1/divisor);
+      }
+      input.value = parameterDrafts.get(spec.address) ?? '';
+      input.addEventListener('input',()=>{
+        const draft = input.value.trim();
+        const word = encodeParameter(spec,draft);
+        if (draft && (word===undefined || word!==parameterValues.get(spec.address)?.word)) parameterDrafts.set(spec.address,draft);
+        else parameterDrafts.delete(spec.address);
+        updateParameterControls();
+      });
+      edit.append(input);
+      button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = 'Записати';
+      button.setAttribute('aria-label','Записати параметр '+spec.id);
+      button.addEventListener('click',()=>queueParameterWrite(spec,input));
+      actions.append(button);
+    } else edit.textContent = 'Лише читання';
+    parameterRowNodes.set(spec.address,{spec,input,button,value});
+  }
+  const pages = Math.max(1,Math.ceil(selectedParameterGroup(group).length/parameterPageSize));
+  pageLabel.textContent = (page+1)+' із '+pages;
+  previous.disabled = page===0;
+  next.disabled = page+1>=pages;
+  refreshParameterRows();
+}
+function parameterChange(address,input) {
+  const spec = parameterCatalog.get(address);
+  const word = encodeParameter(spec,input);
+  const expected = parameterValues.get(address)?.word;
+  if (expected===undefined) throw new Error('Спочатку зчитай параметр '+spec.id+'.');
+  if (word===undefined) throw new Error('Параметр '+spec.id+': перевір діапазон і крок.');
+  return word===expected ? null : {address,input,expected,word};
+}
+function queueParameterWrite(spec,input) {
+  if (!canWriteParameters()) return;
+  try {
+    const change = parameterChange(spec.address,input.value.trim());
+    if (!change) return parameterFeedback('Параметр '+spec.id+' вже має це значення.');
+    confirmParameterWrites([change],false);
+  } catch (error) { parameterFeedback(error.message,'bad'); }
+}
+function writeAllParameters() {
+  if (!canWriteParameters()) return;
+  try {
+    const changes = [...parameterDrafts]
+      .sort(([a],[b])=>a-b)
+      .map(([address,input])=>parameterChange(address,input))
+      .filter(Boolean);
+    if (!changes.length) return parameterFeedback('Немає змінених значень для запису.');
+    confirmParameterWrites(changes,true);
+  } catch (error) { parameterFeedback(error.message,'bad'); }
+}
+function confirmParameterWrites(changes,batch,summary='',restore=null) {
+  const review = changes.map(({address,expected,word})=>{
+    const spec = parameterCatalog.get(address);
+    return spec.id+' · '+spec.name+': '+parameterText(spec,expected)+' → '+parameterText(spec,word);
+  });
+  if (batch) {
+    reviewedParameterChanges = changes;
+    reviewedParameterRestore = restore;
+    $('parameterBatchSummary').textContent = summary;
+    const list = $('parameterBatchReview');
+    list.replaceChildren();
+    for (const line of review) {
+      const item = document.createElement('li');
+      item.textContent = line;
+      list.append(item);
+    }
+    $('parameterBatchDialog').showModal();
+  } else if (window.confirm('Записати зміни до ПЧ?\n\n'+review[0]+'\n\nПереконайся, що команди пуску знято з усіх джерел.')) {
+    beginParameterWrites(changes,false);
+  }
+}
+function beginParameterWrites(changes,batch,restore=null) {
+  if (!changes.length || !canWriteParameters() || (restore && restore!==parameterMapComparison)) {
+    parameterFeedback('Запис недоступний. Перевір зупинку ПЧ і дозвіл команд.','bad');
+    return;
+  }
+  parameterReadGeneration++;
+  parameterReadQueue = [];
+  clearParameterMapComparison();
+  parameterBatchActive = batch;
+  parameterBatchCancelled = false;
+  queuedCommand = batch ? {kind:'parameterBatch',value:changes,restore} : {kind:'parameter',value:changes[0]};
+  commandBusy = true;
+  parameterFeedback('Перевірка стану перед записом…');
+  updateControls();
+  wakePoll?.();
+}
+function resetParameterValues() {
+  clearParameterMapComparison();
+  $('parameterMapVariant').value = '';
+  parameterReadGeneration++;
+  parameterReadQueue = [];
+  pendingParameterAddress = undefined;
+  parameterGroupScan = null;
+  $('parameterScanStatus').textContent = '';
+  parameterValues.clear();
+  parameterDrafts.clear();
+  if (parameterMapJob) finishParameterMapJob(parameterMapJob,true);
+  parameterBatchActive = parameterBatchCancelled = false;
+  for (const row of parameterRowNodes.values()) if (row.input) row.input.value = '';
+  refreshParameterRows();
+  if ($('driveParameters').open) queueParameterRead();
+}
+function queueParameterRead(refresh=[]) {
+  if (commandBusy) return;
+  parameterReadGeneration++;
+  parameterReadQueue = [];
+  if (!$('driveParameters').open) return;
+  if (session?.mode!=='real') return parameterFeedback('Для зчитування параметрів підключи ПЧ через RS‑485.');
+  for (const address of refresh) parameterValues.delete(address);
+  const wanted = [...parameterGroupNodes.values()].filter(section=>section.details.open)
+    .flatMap(section=>visibleParameters(section).map(spec=>spec.address))
+    .filter(address=>!parameterValues.has(address));
+  const exact = pendingParameterAddress;
+  parameterReadQueue = [
+    ...(exact===undefined ? [] : [{first:exact,count:1}]),
+    ...registerBlocks(wanted.filter(address=>address!==exact))
+  ];
+  if (parameterReadQueue.length) parameterFeedback('Зчитування параметрів…');
+  refreshParameterRows();
+  if (parameterReadQueue.length) wakePoll?.();
+}
+async function readParameterStep(current,transport) {
+  const generation = parameterReadGeneration;
+  const {first,count} = parameterReadQueue.shift();
+  const exact = count===1 && pendingParameterAddress===first;
+  try {
+    const words = await transport.read(first,count);
+    if (session!==current || generation!==parameterReadGeneration) return;
+    words.forEach((word,i)=>parameterValues.set(first+i,{word}));
+  } catch (error) {
+    if (session!==current || generation!==parameterReadGeneration) return;
+    if (error.code==='io') return stopSession(error.message);
+    if (error.exceptionCode===2 && count>1) {
+      const half = Math.floor(count/2);
+      parameterReadQueue.unshift({first,count:half},{first:first+half,count:count-half});
+    } else {
+      const message = error.exceptionCode===2 ? 'ПЧ не надає цей регістр (Modbus 02)' : error.message;
+      for (let i=0;i<count;i++) parameterValues.set(first+i,{error:message});
+    }
+  }
+  if (exact) pendingParameterAddress = undefined;
+  refreshParameterRows();
+  if (!parameterReadQueue.length) {
+    const failures = [...parameterGroupNodes.values()].filter(section=>section.details.open)
+      .flatMap(visibleParameters).filter(spec=>parameterValues.get(spec.address)?.error).length;
+    parameterFeedback(failures ? 'Зчитування завершено. Є параметри без даних.' : 'Параметри зчитано.',failures ? 'bad' : 'good');
+  }
+}
+function groupScanFeedback(message,tone='') {
+  $('parameterScanStatus').textContent = message;
+  $('parameterScanStatus').dataset.tone = tone;
+}
+function startParameterGroupScan(section) {
+  if (session?.mode!=='real' || commandBusy || parameterGroupScan || parameterMapJob) return;
+  const first = 40000+section.group*1000;
+  const addresses = Array.from({length:255},(_,index)=>first+index+1);
+  parameterGroupScan = {section,blocks:mapReadBlocks(addresses),words:new Map(),failed:new Map(),unavailable:0,errors:0,done:0};
+  groupScanFeedback('Група '+section.group+' · перевірено 0 із 255 адрес…');
+  updateParameterControls();
+  wakePoll?.();
+}
+async function readParameterGroupStep(current,transport) {
+  const scan = parameterGroupScan;
+  const {first,count} = scan.blocks.shift();
+  try {
+    const words = await transport.read(first,count);
+    if (session!==current || scan!==parameterGroupScan) return;
+    for (let offset=0;offset<count;offset++) {
+      if (registerWord(words[offset])) scan.words.set(first+offset,words[offset]);
+      else {
+        scan.errors++;
+        scan.failed.set(first+offset,'Неповна відповідь ПЧ');
+      }
+    }
+  } catch (error) {
+    if (session!==current || scan!==parameterGroupScan) return;
+    if (error.code==='io') return stopSession(error.message);
+    if (error.exceptionCode===2 && count>1) {
+      const half = Math.floor(count/2);
+      scan.blocks.unshift({first,count:half},{first:first+half,count:count-half});
+      return;
+    }
+    if (error.exceptionCode===2) scan.unavailable++;
+    else scan.errors+=count;
+    const message = error.exceptionCode===2 ? 'ПЧ не надає цей регістр (Modbus 02)' : error.message;
+    for (let offset=0;offset<count;offset++) scan.failed.set(first+offset,message);
+  }
+  scan.done+=count;
+  if (!scan.blocks.length) finishParameterGroupScan(scan,false);
+  else groupScanFeedback('Група '+scan.section.group+' · перевірено '+scan.done+' із 255 адрес…');
+}
+function finishParameterGroupScan(scan,cancelled) {
+  const {section,words,failed,done,errors,unavailable} = scan;
+  parameterGroupScan = null;
+  const anchor = visibleParameters(section)[0]?.address;
+  let discovered = 0;
+  for (const [address,word] of words) {
+    if (!parameterCatalog.has(address)) {
+      addParameter(section.group+'.'+address%1000,'Регістр '+address);
+      discovered++;
+    }
+    parameterValues.set(address,{word});
+  }
+  for (const [address,error] of failed) {
+    if (parameterCatalog.has(address)) parameterValues.set(address,{error});
+  }
+  if (anchor!==undefined) {
+    section.page = Math.floor(selectedParameterGroup(section.group).findIndex(spec=>spec.address===anchor)/parameterPageSize);
+  }
+  renderParameters(section);
+  groupScanFeedback('Група '+section.group+' · '+(cancelled ? 'зупинено' : 'перевірку завершено')+
+    ' · перевірено '+done+' із 255 · доступні '+words.size+' · додано '+discovered+
+    ' · недоступні '+unavailable+' · помилки обміну '+errors+'.',errors ? 'bad' : 'good');
+}
+function createParameterGroup(group,title) {
+  const details = document.createElement('details');
+  details.className = 'parameter-group';
+  const summary = document.createElement('summary');
+  summary.textContent = group+' · '+title;
+  details.append(summary);
+  const contents = document.createElement('div');
+  contents.innerHTML = '<div class="row parameter-tools"><button type="button">Зчитати сторінку</button>'+
+    '<button type="button">Знайти всі доступні в групі</button></div>'+
+    '<div class="parameter-table" tabindex="0"><table><thead><tr><th scope="col">Параметр</th><th scope="col">Назва</th>'+
+    '<th scope="col">Зчитано</th><th scope="col">Нове значення</th><th scope="col">Дія</th></tr></thead><tbody></tbody></table></div>'+
+    '<div class="row parameter-tools"><button type="button">Попередня</button><small></small><button type="button">Наступна</button></div>';
+  contents.querySelector('.parameter-table').setAttribute('aria-label','Параметри групи '+group);
+  const [read,scan,previous,next] = contents.querySelectorAll('button');
+  const section = {group,details,read,scan,previous,next,body:contents.querySelector('tbody'),pageLabel:contents.querySelector('small'),page:0};
+  parameterGroupNodes.set(group,section);
+  details.append(contents);
+  $('parameterGroups').append(details);
+  details.addEventListener('toggle',()=>{
+    if (details.open && !section.rendered) renderParameters(section);
+    queueParameterRead();
+  });
+  read.addEventListener('click',()=>queueParameterRead(visibleParameters(section).map(spec=>spec.address)));
+  scan.addEventListener('click',()=>startParameterGroupScan(section));
+  for (const [button,offset] of [[previous,-1],[next,1]]) {
+    button.addEventListener('click',()=>{
+      section.page += offset;
+      renderParameters(section);
+      queueParameterRead();
+    });
+  }
+  return section;
+}
+function initParameterPanel() {
+  registerParameters();
+  initParameterMap();
+  parameterGroupTitles.forEach((title,group)=>createParameterGroup(group,title));
+  $('driveParameters').addEventListener('toggle',()=>queueParameterRead());
+  $('stopParameterScan').addEventListener('click',()=>{
+    if (parameterGroupScan) finishParameterGroupScan(parameterGroupScan,true);
+  });
+  $('writeAllParameters').addEventListener('click',writeAllParameters);
+  $('confirmParameterBatch').addEventListener('click',()=>{
+    const changes = reviewedParameterChanges;
+    const restore = reviewedParameterRestore;
+    reviewedParameterChanges = [];
+    reviewedParameterRestore = null;
+    $('parameterBatchDialog').close();
+    beginParameterWrites(changes,true,restore);
+  });
+  $('parameterBatchDialog').addEventListener('close',()=>{ reviewedParameterChanges = []; reviewedParameterRestore = null; });
+  $('cancelParameterBatch').addEventListener('click',()=>{
+    parameterBatchCancelled = true;
+    updateParameterControls();
+  });
+  $('parameterLookup').addEventListener('submit',event=>{
+    event.preventDefault();
+    if (commandBusy) return parameterFeedback('Дочекайся завершення запису.','bad');
+    const match = /^([0-6])\.(\d{1,3})$/.exec($('parameterNumber').value.trim());
+    if (!match || Number(match[2])===0 || Number(match[2])>255) return parameterFeedback('Введи номер параметра, наприклад 2.110.','bad');
+    const group = Number(match[1]), index = Number(match[2]), address = 40000+group*1000+index;
+    if (!parameterCatalog.has(address)) addParameter(group+'.'+index,'Регістр '+address);
+    const section = parameterGroupNodes.get(group);
+    section.page = Math.floor(selectedParameterGroup(group).findIndex(spec=>spec.address===address)/parameterPageSize);
+    section.details.open = true;
+    renderParameters(section);
+    if (session?.mode==='real') pendingParameterAddress = address;
+    queueParameterRead([address]);
+    const row = parameterRowNodes.get(address).value.parentElement;
+    row.tabIndex = -1;
+    row.focus();
+    row.scrollIntoView({block:'nearest'});
+  });
+  updateParameterControls();
+}
+
+const parameterMapKind = 'mfc710-parameter-map';
+const parameterMapVersion = 1;
+const firmwareAddress = 40051;
+const excludedParameterAddress = 44002; // 4.2 – рівень доступу / код.
+const mapBlockSize = 32;
+let parameterMap = null;
+let parameterMapJob = null;
+let describedParameterMap = null;
+let partialParameterMap = null;
+let parameterMapComparison = null;
+// Read the motor nameplate settings as register words; compare without guessing their scale.
+const motorNameplate = new Map([[41001,'Потужність'],[41002,'Швидкість'],[41003,'Струм'],[41004,'Напруга'],[41005,'Частота']]);
+
+function mapAddressAllowed(address) {
+  if (!Number.isInteger(address) || address===excludedParameterAddress) return false;
+  const group = Math.floor((address-40000)/1000);
+  return group>=1 && group<=6 && address%1000>=1 && address%1000<=255;
+}
+function registerWord(value) {
+  return Number.isInteger(value) && value>=0 && value<=65535;
+}
+function parseParameterMap(json) {
+  const map = JSON.parse(json);
+  if (map?.format!==parameterMapKind || map.version!==parameterMapVersion || map.model!=='MFC710' ||
+      !Array.isArray(map.parameters) || !map.parameters.length || map.parameters.length>1530 ||
+      !(map.firmware===null || registerWord(map.firmware))) {
+    throw new Error('Потрібна карта JSON, створена MFC710 RS Monitor.');
+  }
+  const seen = new Set();
+  const parameters = map.parameters.map(entry=>{
+    const {address,word} = entry || {};
+    if (!mapAddressAllowed(address) || !registerWord(word) || seen.has(address)) {
+      throw new Error('Карта містить недопустимі або повторні адреси чи значення.');
+    }
+    seen.add(address);
+    return {address,word};
+  }).sort((a,b)=>a.address-b.address);
+  const created = typeof map.createdAt==='string' ? Date.parse(map.createdAt) : NaN;
+  return {
+    format:parameterMapKind,version:parameterMapVersion,model:'MFC710',firmware:map.firmware,
+    createdAt:Number.isFinite(created) ? new Date(created).toISOString() : null,
+    slave:Number.isInteger(map.slave) && map.slave>=1 && map.slave<=247 ? map.slave : null,
+    variant:[400,500,690].includes(map.variant) ? map.variant : null,
+    complete:map.complete===true,
+    unavailable:Number.isInteger(map.unavailable) && map.unavailable>=0 && map.unavailable<=1530 ? map.unavailable : null,
+    unread:Number.isInteger(map.unread) && map.unread>=0 && map.unread<=1530 ? map.unread : null,
+    parameters
+  };
+}
+function mapRestoreInput(address,word) {
+  const spec = parameterCatalog.get(address);
+  const format = spec?.format;
+  if (!format) return undefined;
+  const value = (format.min<0 ? signed(word) : word)/format.divisor;
+  const input = String(value);
+  return encodeParameter(spec,input)===word ? input : undefined;
+}
+function mapReadBlocks(addresses) {
+  const result = [];
+  for (const {first,count} of registerBlocks(addresses)) {
+    for (let n=0;n<count;n+=mapBlockSize) {
+      result.push({first:first+n,count:Math.min(count-n,mapBlockSize)});
+    }
+  }
+  return result;
+}
+function parameterMapFeedback(message,tone='') {
+  $('parameterMapStatus').textContent = message;
+  $('parameterMapStatus').dataset.tone = tone;
+}
+function updateParameterMapControls() {
+  const active = Boolean(parameterMapJob);
+  const connected = session?.mode==='real';
+  const available = Boolean(parameterMap?.parameters.length);
+  $('readParameterMap').disabled = !connected || active || commandBusy || Boolean(parameterGroupScan);
+  $('stopParameterMap').hidden = !active;
+  $('importParameterMap').disabled = active || commandBusy;
+  $('saveParameterMap').disabled = !available;
+  $('saveReadableMap').disabled = $('saveWordMap').disabled = !available;
+  $('compareParameterMap').disabled = !available || !connected || active || commandBusy || Boolean(parameterGroupScan);
+  $('restoreParameterMap').disabled = !parameterMapComparison?.changes.length || parameterMapComparison.reasons.length>0 ||
+    parameterMapComparison.session!==session || !canWriteParameters();
+  $('savePartialMap').hidden = !partialParameterMap;
+  $('parameterMapVariant').disabled = active || commandBusy;
+  if (parameterMap!==describedParameterMap) {
+    describedParameterMap = parameterMap;
+    const writable = parameterMap.parameters.filter(({address,word})=>mapRestoreInput(address,word)!==undefined).length;
+    $('parameterMapInfo').textContent = 'У карті: '+parameterMap.parameters.length+' · доступні для запису: '+writable+
+      ' · ПЗ (слово 0.51): '+(parameterMap.firmware ?? '—')+' · виконання: '+(parameterMap.variant ? parameterMap.variant+' В' : 'не вказано')+(parameterMap.complete ? '' : ' · неповне зчитування');
+  }
+}
+function startParameterMapRead(compare=false) {
+  if (session?.mode!=='real' || parameterMapJob || parameterGroupScan || commandBusy || (compare && !parameterMap)) return;
+  clearParameterMapComparison();
+  const entries = compare ? parameterMap.parameters :
+    Array.from({length:1530},(_,i)=>({address:41001+Math.floor(i/255)*1000+i%255})).filter(({address})=>mapAddressAllowed(address));
+  if (!entries.length) return parameterMapFeedback('У карті немає підтримуваних параметрів для відновлення.','bad');
+  parameterMapJob = {
+    compare,source:compare ? parameterMap : null,entries,firmware:null,words:new Map(),done:0,unavailable:0,unread:0,
+    blocks:[{first:firmwareAddress,count:1},...mapReadBlocks(entries.map(item=>item.address))],
+    slave:Number($('address').value),variant:Number($('parameterMapVariant').value) || null,createdAt:new Date().toISOString()
+  };
+  parameterMapFeedback(compare ? 'Порівняння карти з ПЧ…' : 'Зчитування карти з ПЧ…');
+  updateParameterMapControls();
+  wakePoll?.();
+}
+async function readParameterMapStep(current,transport) {
+  const job = parameterMapJob;
+  const {first,count} = job.blocks.shift();
+  const firmware = first===firmwareAddress;
+  try {
+    const words = await transport.read(first,count);
+    if (session!==current || job!==parameterMapJob) return;
+    if (firmware) {
+      job.firmware = registerWord(words[0]) ? words[0] : null;
+
+    } else {
+      for (let i=0;i<count;i++) {
+        if (registerWord(words[i])) job.words.set(first+i,words[i]);
+        else job.unread++;
+      }
+      job.done+=count;
+    }
+  } catch (error) {
+    if (session!==current || job!==parameterMapJob) return;
+    if (error.code==='io') {
+      await stopSession(error.message);
+      return;
+    }
+    if (!firmware && error.exceptionCode===2 && count>1) {
+      const half = Math.floor(count/2);
+      job.blocks.unshift({first,count:half},{first:first+half,count:count-half});
+    } else if (!firmware) {
+      if (error.exceptionCode===2) job.unavailable+=count;
+      else job.unread+=count;
+      job.done+=count;
+    }
+  }
+  if (!job.blocks.length) finishParameterMapJob(job,false);
+  else parameterMapFeedback((job.compare ? 'Порівняно ' : 'Перевірено ') + job.done+' із '+job.entries.length+' регістрів…');
+}
+function finishParameterMapJob(job,cancelled) {
+  parameterMapJob = null;
+  if (job.compare) {
+    if (cancelled) {
+      updateParameterMapControls();
+      return parameterMapFeedback('Порівняння зупинено.');
+    }
+    return finishParameterMapComparison(job);
+  }
+  if (job.words.size) {
+    const captured = {
+      format:parameterMapKind,version:parameterMapVersion,model:'MFC710',firmware:job.firmware,createdAt:job.createdAt,slave:job.slave,variant:job.variant,
+      complete:!cancelled && job.unread===0 && job.firmware!==null,
+      unavailable:job.unavailable,unread:job.unread+(job.entries.length-job.done),
+      parameters:[...job.words].sort(([a],[b])=>a-b).map(([address,word])=>({address,word}))
+    };
+    if (captured.complete) {
+      parameterMap = captured;
+      partialParameterMap = null;
+    } else {
+      partialParameterMap = captured;
+    }
+    parameterMapFeedback('Зчитано: '+job.words.size+' · відсутні регістри: '+job.unavailable+
+      ' · не зчитано: '+captured.unread+(job.firmware===null ? ' · версію ПЗ не визначено' : '')+
+      (captured.complete ? '.' : '. Часткову карту можна скачати окремо.'),
+      captured.complete && job.firmware!==null ? 'good' : 'bad');
+  } else parameterMapFeedback('Карту не зчитано. Перевір зв’язок із ПЧ.','bad');
+  updateParameterMapControls();
+}
+function clearParameterMapComparison() {
+  parameterMapComparison = null;
+  $('parameterCompatibility').textContent = '';
+  $('parameterMapDifferences').hidden = true;
+  $('parameterMapDiffList').replaceChildren();
+}
+function finishParameterMapComparison(job) {
+  const changes = [], differences = [];
+  const currentVariant = job.variant;
+  const sourceVariant = job.source.variant;
+  const reasons = [];
+  const warnings = [];
+  const checkedRatings = [];
+  const savedWords = parameterWordIndex(job.source);
+  const firmwareMatches = job.firmware!==null && job.firmware===job.source.firmware;
+  if (!firmwareMatches) reasons.push('Версія ПЗ відрізняється або не визначена');
+  if (sourceVariant && currentVariant && sourceVariant!==currentVariant) reasons.push('Виконання ПЧ за напругою відрізняється');
+  if (!sourceVariant || !currentVariant) warnings.push('Виконання ПЧ не вказане в карті або для підключеного пристрою');
+  let unchanged = 0;
+  for (const {address,word} of job.entries) {
+    const expected = job.words.get(address);
+    const input = mapRestoreInput(address,word);
+    const spec = parameterCatalog.get(address);
+    const label = spec ? spec.id+' · '+spec.name : Math.floor((address-40000)/1000)+'.'+address%1000;
+    if (motorNameplate.has(address) && expected!==undefined) checkedRatings.push({address,word:expected});
+    if (expected===word) { unchanged++; continue; }
+    if (expected===undefined) continue;
+    if (input!==undefined) changes.push({address,word,expected,input});
+    const currentValue = parameterText(spec,expected,id=>job.words.get(id));
+    const savedValue = parameterText(spec,word,id=>savedWords.get(id));
+    differences.push(label+' · '+currentValue+' → '+savedValue+(input===undefined ? ' · лише перегляд' : ''));
+  }
+  for (const [address,name] of motorNameplate) {
+    const saved = job.entries.find(item=>item.address===address)?.word;
+    const current = job.words.get(address);
+    if (saved===undefined || current===undefined) warnings.push(name+': бракує даних двигуна для звірки');
+    else if (saved!==current) {
+      const spec = parameterCatalog.get(address);
+      warnings.push(name+' двигуна відрізняється (карта '+parameterText(spec,saved)+' / ПЧ '+parameterText(spec,current)+')');
+    }
+  }
+  if (job.entries.some(({address,word})=>!job.words.has(address) && mapRestoreInput(address,word)!==undefined)) {
+    reasons.push('Є доступні для запису параметри без поточного значення');
+  }
+  const detail = 'Відмінностей '+differences.length+' · для запису '+changes.length+' · однакових '+unchanged+
+    ' · без поточного значення '+(job.unavailable+job.unread)+'.';
+  const compare = {changes,reasons,warnings,detail,session,firmware:job.firmware,checkedRatings};
+  parameterMapComparison = compare;
+  const list = $('parameterMapDiffList');
+  list.replaceChildren();
+  for (const line of differences) {
+    const item = document.createElement('li');
+    item.textContent = line;
+    list.append(item);
+  }
+  $('parameterMapDifferences').hidden = !differences.length;
+  $('parameterCompatibility').textContent = [...reasons,...warnings].join('. ');
+  parameterMapFeedback(detail,reasons.length ? 'bad' : 'good');
+  updateParameterMapControls();
+}
+function reviewParameterMapRestore() {
+  const compare = parameterMapComparison;
+  if (!compare?.changes.length || compare.reasons.length || compare.session!==session || !canWriteParameters()) return;
+  const changes = [...compare.changes].sort((a,b)=>(a.address===45144)-(b.address===45144) || a.address-b.address);
+  const reminder = 'Звір шильдики ПЧ та двигуна перед підтвердженням запису.';
+  confirmParameterWrites(changes,true,[compare.detail,...compare.warnings,reminder].join(' '),compare);
+}
+async function verifyRestoreTarget(transport,compare) {
+  const [firmware] = await transport.read(firmwareAddress,1);
+  if (firmware!==compare.firmware) throw new RtuError('interlock','Версія ПЗ змінилася. Порівняй карту повторно.');
+  for (const {address,word} of compare.checkedRatings) {
+    const [current] = await transport.read(address,1);
+    if (current!==word) throw new RtuError('interlock','Дані двигуна змінилися після порівняння. Порівняй карту повторно.');
+  }
+}
+function parameterMapCsv(map) {
+  const words = parameterWordIndex(map);
+  const escape = value=>'"'+String(value ?? '').replaceAll('"','""')+'"';
+  const rows = [
+    ['Модель',map.model],
+    ['Дата зчитування (UTC)',map.createdAt],
+    ['Адреса Modbus',map.slave],
+    ['Виконання ПЧ за шильдиком',map.variant ? map.variant+' В' : ''],
+    ['ПЗ (слово 0.51)',map.firmware],
+    ['Результат зчитування',map.complete ? 'Завершено' : 'Неповне'],
+    ['Відсутні регістри',map.unavailable],
+    ['Не зчитано',map.unread],
+    [],
+    ['Група','Параметр','Регістр','Назва','Значення','Слово Modbus','Відновлення з JSON']
+  ];
+  for (const {address,word} of map.parameters) {
+    const group = Math.floor((address-40000)/1000);
+    const spec = parameterCatalog.get(address);
+    rows.push([group+' · '+parameterGroupTitles[group],group+'.'+address%1000,address,spec?.name || '',
+      parameterText(spec,word,id=>words.get(id)),word,mapRestoreInput(address,word)===undefined ? 'Лише резервна копія' : 'Підтримується']);
+  }
+  return rows.map(row=>row.map(escape).join(';')).join('\r\n')+'\r\n';
+}
+function zipUncompressed(parts) {
+  const encoder = new TextEncoder();
+  const local = [];
+  const central = [];
+  let offset = 0;
+  let centralSize = 0;
+  for (const [path,text] of Object.entries(parts)) {
+    const name = encoder.encode(path);
+    const data = encoder.encode(text);
+    let crc = 0xffffffff;
+    for (const byte of data) {
+      crc ^= byte;
+      for (let bit=0;bit<8;bit++) crc = (crc>>>1) ^ ((crc&1) ? 0xedb88320 : 0);
+    }
+    crc = (crc^0xffffffff)>>>0;
+    const header = new Uint8Array(30);
+    const head = new DataView(header.buffer);
+    head.setUint32(0,0x04034b50,true);
+    head.setUint16(4,20,true);
+    head.setUint16(6,0x0800,true);
+    head.setUint16(12,0x21,true);
+    head.setUint32(14,crc,true);
+    head.setUint32(18,data.length,true);
+    head.setUint32(22,data.length,true);
+    head.setUint16(26,name.length,true);
+    local.push(header,name,data);
+
+    const directory = new Uint8Array(46);
+    const dir = new DataView(directory.buffer);
+    dir.setUint32(0,0x02014b50,true);
+    dir.setUint16(4,20,true);
+    dir.setUint16(6,20,true);
+    dir.setUint16(8,0x0800,true);
+    dir.setUint16(14,0x21,true);
+    dir.setUint32(16,crc,true);
+    dir.setUint32(20,data.length,true);
+    dir.setUint32(24,data.length,true);
+    dir.setUint16(28,name.length,true);
+    dir.setUint32(42,offset,true);
+    central.push(directory,name);
+    offset += header.length+name.length+data.length;
+    centralSize += directory.length+name.length;
+  }
+  const ending = new Uint8Array(22);
+  const end = new DataView(ending.buffer);
+  end.setUint32(0,0x06054b50,true);
+  end.setUint16(8,central.length/2,true);
+  end.setUint16(10,central.length/2,true);
+  end.setUint32(12,centralSize,true);
+  end.setUint32(16,offset,true);
+  return [...local,...central,ending];
+}
+function parameterMapDocx(map) {
+  const words = parameterWordIndex(map);
+  const xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  const wordNs = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+  const relationships = 'http://schemas.openxmlformats.org/package/2006/relationships';
+  const relType = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const typeRoot = 'application/vnd.openxmlformats-officedocument.wordprocessingml.';
+  const mime = typeRoot+'document';
+  const escape = value=>String(value ?? '').replace(/[<>&"']/g,char=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&apos;'}[char]));
+  const run = text=>'<w:r><w:t xml:space="preserve">'+escape(text)+'</w:t></w:r>';
+  const paragraph = (text,style='Normal')=>'<w:p><w:pPr><w:pStyle w:val="'+style+'"/></w:pPr>'+run(text)+'</w:p>';
+  const row = (values,widths,heading=false)=>{
+    const props = '<w:trPr><w:cantSplit/>'+(heading ? '<w:tblHeader/>' : '')+'</w:trPr>';
+    return '<w:tr>'+props+values.map((value,index)=>{
+      const fill = heading ? '<w:shd w:fill="E7ECF0"/>' : '';
+      const style = heading ? 'TableHead' : 'TableText';
+      return '<w:tc><w:tcPr><w:tcW w:w="'+widths[index]+'" w:type="dxa"/>'+fill+'</w:tcPr>'+paragraph(value,style)+'</w:tc>';
+    }).join('')+'</w:tr>';
+  };
+  const table = (head,values,widths)=>{
+    const width = widths.reduce((sum,value)=>sum+value,0);
+    const borders = ['top','left','bottom','right','insideH','insideV'].map(side=>
+      '<w:'+side+' w:val="single" w:sz="4" w:color="D5DCE2"/>').join('');
+    const grid = widths.map(value=>'<w:gridCol w:w="'+value+'"/>').join('');
+    return '<w:tbl><w:tblPr><w:tblW w:w="'+width+'" w:type="dxa"/><w:tblBorders>'+borders+'</w:tblBorders>'+
+      '<w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="52" w:type="dxa"/><w:left w:w="100" w:type="dxa"/>'+
+      '<w:bottom w:w="52" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tblCellMar></w:tblPr>'+
+      '<w:tblGrid>'+grid+'</w:tblGrid>'+row(head,widths,true)+values.map(values=>row(values,widths)).join('')+'</w:tbl>';
+  };
+  const groups = new Map();
+  for (const {address,word} of map.parameters) {
+    const group = Math.floor((address-40000)/1000);
+    if (!groups.has(group)) groups.set(group,[]);
+    const spec = parameterCatalog.get(address);
+    const value = parameterText(spec,word,id=>words.get(id));
+    groups.get(group).push([group+'.'+address%1000,spec?.name || '—',value,word]);
+  }
+  const timestamp = map.createdAt ? new Intl.DateTimeFormat('uk-UA',{
+    timeZone:'UTC',dateStyle:'short',timeStyle:'medium'
+  }).format(new Date(map.createdAt))+' UTC' : '—';
+  const metadata = [
+    ['Дата й час зчитування',timestamp],['Адреса Modbus',map.slave ?? '—'],
+    ['Виконання ПЧ за шильдиком',map.variant ? map.variant+' В' : '—'],
+    ['Версія ПЗ (слово 0.51)',map.firmware ?? '—'],
+    ['Результат',map.complete ? 'Зчитування завершено' : 'Неповне зчитування'],
+    ['Записи у карті',map.parameters.length],['Відсутні регістри',map.unavailable ?? '—'],
+    ['Не зчитано',map.unread ?? '—']
+  ];
+  const body = [
+    paragraph('Карта параметрування TWERD MFC710','Title'),
+    table(['Дані зчитування','Значення'],metadata,[3650,5978]),
+    paragraph('У таблицях наведено значення конфігурації, зчитані через Modbus. Для параметрів без підтвердженого масштабу наведено сире слово.'),
+    ...[...groups].sort(([a],[b])=>a-b).map(([group,values])=>
+      paragraph('Група '+group+' '+parameterGroupTitles[group],'Heading1')+
+      table(['Параметр','Найменування','Зчитане значення','Слово Modbus'],values,[1160,4550,2350,1568]))
+  ].join('');
+  const style = (id,name,properties,rules,base='Normal')=>
+    '<w:style w:type="paragraph" w:styleId="'+id+'"'+(id==='Normal' ? ' w:default="1"' : '')+'>'+
+    '<w:name w:val="'+name+'"/>'+(id==='Normal' ? '' : '<w:basedOn w:val="'+base+'"/>')+
+    '<w:pPr>'+properties+'</w:pPr><w:rPr>'+rules+'</w:rPr></w:style>';
+  const size = halfPoints=>'<w:sz w:val="'+halfPoints+'"/><w:szCs w:val="'+halfPoints+'"/>';
+  const styles = xml+'<w:styles xmlns:w="'+wordNs+'">'+
+    style('Normal','Normal','<w:spacing w:before="50" w:after="120"/>',
+      '<w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:color w:val="000000"/>'+size(21)+'<w:lang w:val="uk-UA"/>')+
+    style('Title','Title','<w:keepNext/><w:spacing w:before="0" w:after="240"/>','<w:b/>'+size(34))+
+    style('Heading1','heading 1','<w:keepNext/><w:spacing w:before="250" w:after="100"/><w:outlineLvl w:val="0"/>','<w:b/>'+size(25))+
+    style('TableText','Table Text','<w:spacing w:before="0" w:after="0"/>',size(20))+
+    style('TableHead','Table Header','<w:keepNext/><w:spacing w:before="0" w:after="0"/>','<w:b/>'+size(20))+
+    '</w:styles>';
+  const parts = {
+    '[Content_Types].xml':xml+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>'+
+      '<Override PartName="/word/document.xml" ContentType="'+mime+'.main+xml"/>'+
+      '<Override PartName="/word/styles.xml" ContentType="'+typeRoot+'styles+xml"/>'+
+      '<Override PartName="/word/footer1.xml" ContentType="'+typeRoot+'footer+xml"/></Types>',
+    '_rels/.rels':xml+'<Relationships xmlns="'+relationships+'"><Relationship Id="rId1" Type="'+relType+'/officeDocument" Target="word/document.xml"/></Relationships>',
+    'word/_rels/document.xml.rels':xml+'<Relationships xmlns="'+relationships+'">'+
+      '<Relationship Id="rId1" Type="'+relType+'/styles" Target="styles.xml"/>'+
+      '<Relationship Id="rId2" Type="'+relType+'/footer" Target="footer1.xml"/></Relationships>',
+    'word/styles.xml':styles,
+    'word/footer1.xml':xml+'<w:ftr xmlns:w="'+wordNs+'"><w:p><w:pPr><w:jc w:val="right"/></w:pPr>'+
+      run('Сторінка ')+'<w:fldSimple w:instr="PAGE">'+run('1')+'</w:fldSimple></w:p></w:ftr>',
+    'word/document.xml':xml+'<w:document xmlns:w="'+wordNs+'" xmlns:r="'+relType+'"><w:body>'+body+
+      '<w:sectPr><w:footerReference w:type="default" r:id="rId2"/><w:pgSz w:w="11906" w:h="16838"/>'+
+      '<w:pgMar w:top="1000" w:right="1139" w:bottom="1000" w:left="1139" w:header="450" w:footer="500" w:gutter="0"/>'+
+      '</w:sectPr></w:body></w:document>'
+  };
+  return new Blob(zipUncompressed(parts),{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+}
+
+function downloadParameterMap(format,map=parameterMap) {
+  if (!map?.parameters.length) return;
+  const time = (map.createdAt || new Date().toISOString()).slice(0,19).replaceAll(':','-');
+  const blob = format==='docx' ? parameterMapDocx(map) :
+    format==='csv' ? new Blob(['\ufeff',parameterMapCsv(map)],{type:'text/csv;charset=utf-8'}) :
+    new Blob([JSON.stringify(map,null,2)+'\n'],{type:'application/json'});
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.download = 'MFC710-parameters-'+time+(map.complete ? '' : '-partial')+'.'+format;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function initParameterMap() {
+  $('parameterMapInfo').textContent = 'JSON – резервна копія. Word – звіт за групами. CSV – таблиця для Excel.';
+  $('readParameterMap').addEventListener('click',()=>startParameterMapRead());
+  $('compareParameterMap').addEventListener('click',()=>startParameterMapRead(true));
+  $('restoreParameterMap').addEventListener('click',reviewParameterMapRestore);
+  $('savePartialMap').addEventListener('click',()=>downloadParameterMap('json',partialParameterMap));
+  $('parameterMapVariant').addEventListener('change',()=>{
+    clearParameterMapComparison();
+    updateParameterMapControls();
+  });
+  $('stopParameterMap').addEventListener('click',()=>{
+    if (parameterMapJob) finishParameterMapJob(parameterMapJob,true);
+  });
+  $('saveParameterMap').addEventListener('click',()=>downloadParameterMap('json'));
+  $('saveReadableMap').addEventListener('click',()=>downloadParameterMap('csv'));
+  $('saveWordMap').addEventListener('click',()=>downloadParameterMap('docx'));
+  const fileInput = $('parameterMapFile');
+  $('importParameterMap').addEventListener('click',()=>fileInput.click());
+  fileInput.addEventListener('change',async ()=>{
+    const file = fileInput.files[0];
+    fileInput.value = '';
+    if (!file) return;
+    try {
+      if (file.size>1024*1024) throw new Error('Файл перевищує 1 МБ.');
+      const map = parseParameterMap((await file.text()).replace(/^\ufeff/,''));
+      if (parameterMapJob || commandBusy) return parameterMapFeedback('Дочекайся завершення поточної операції.','bad');
+      clearParameterMapComparison();
+      parameterMap = map;
+      parameterMapFeedback('Карту відкрито. Для відновлення порівняй її з підключеним ПЧ.','good');
+      updateParameterMapControls();
+    } catch (error) {
+      parameterMapFeedback('Не вдалося відкрити карту. '+error.message,'bad');
+    }
+  });
+}
+
+const resize = new ResizeObserver(() => requestPlots());
+let sharedPlot;
+function syncPlots() {
+  if (!sharedPlot) {
+    sharedPlot = createPlot('Графік вибраних сигналів');
+    $('charts').append(sharedPlot.box);
+  }
+  sharedPlot.signals = [...selected.values()].filter(signal=>signal.visible);
+  updatePollUI();
+  requestPlots();
+}
+function createPlot(label) {
+  const box = document.createElement('section');
+  box.className = 'plot';
+  const title = document.createElement('h3');
+  title.textContent = label;
+  const key = document.createElement('div');
+  key.className = 'trace-key row';
+  const canvas = document.createElement('canvas');
+  canvas.setAttribute('aria-label','Часовий графік – '+label);
+  canvas.setAttribute('role','img');
+  const tooltip = document.createElement('div');
+  tooltip.className = 'popup';
+  tooltip.hidden = true;
+  const viewport = document.createElement('div');
+  viewport.className = 'plot-viewport';
+  viewport.append(canvas,tooltip);
+  box.append(title,key,viewport);
+  const panel = {box,viewport,canvas,tooltip,key};
+  viewport.addEventListener('scroll',()=>{ tooltip.hidden = true; });
+  canvas.addEventListener('pointermove',event => showPoint(panel,event));
+  canvas.addEventListener('pointerleave',() => { tooltip.hidden = true; });
+  resize.observe(canvas);
+  return panel;
+}
+function requestPlots() {
+  if (renderRequested) return;
+  renderRequested = true;
+  requestAnimationFrame(() => {
+    renderRequested = false;
+    paintPlots();
+  });
+}
+function paintPlots() {
+  const right = frozenAt ?? history.at(-1)?.time ?? Date.now();
+  const left = right-Number($('window').value)*1000;
+  const first = history.findIndex(point=>point.time>=left);
+  const points = first<0 ? [] : history.slice(Math.max(0,first-1)).filter(point=>point.time<=right);
+  if (sharedPlot) paintPlot(sharedPlot,left,right,points);
+}
+function isRawParameter(signal) {
+  return Boolean(signal.param && sessionMode!=='demo' && !settings.has(signal.address));
+}
+function defaultDisplayFactor(signal) {
+  return isRawParameter(signal) && (signal.address===40004 || signal.address===40005) ? .1 : 1;
+}
+function physicalDisplayUnit(signal) {
+  const customUnit = displaySettings.get(signal.address)?.unit;
+  if (customUnit) return customUnit;
+  if (signal.param && (!isRawParameter(signal) || defaultDisplayFactor(signal)!==1 || displaySettings.get(signal.address)?.factor!==undefined)) return signal.unit;
+  return signal.format?.unit || '';
+}
+function displayValue(signal,value) {
+  if (value===undefined) return undefined;
+  const converted = value*(displaySettings.get(signal.address)?.factor ?? defaultDisplayFactor(signal));
+  return Number.isFinite(converted) ? converted : undefined;
+}
+function chartUnit(signal) {
+  return physicalDisplayUnit(signal) || (signal.param ? 'uint16 ('+signal.unit+')' : axisName(signal));
+}
+function scaleKey(signal) {
+  const {auto,axis,min,max} = displaySettings.get(signal.address) || {};
+  if (axis) return signal.address;
+  return JSON.stringify([chartUnit(signal),signal.kind==='logic',auto===false ? min : null,auto===false ? max : null]);
+}
+function traceScales(signals,points) {
+  const result = new Map();
+  for (const signal of signals) {
+    const unit = chartUnit(signal);
+    const key = scaleKey(signal);
+    const config = displaySettings.get(signal.address);
+    const fixedMin = config?.auto===false ? config.min : undefined;
+    const fixedMax = config?.auto===false ? config.max : undefined;
+    const color = config?.axis ? signal.color : undefined;
+    if (!result.has(key)) result.set(key,{unit,min:Infinity,max:-Infinity,discrete:signal.kind==='logic',fixedMin,fixedMax,color,names:[]});
+    const scale = result.get(key);
+    scale.names.push(signal.name);
+    for (const {values} of points) {
+      const value = displayValue(signal,values.get(signal.address));
+      if (!Number.isFinite(value)) continue;
+      scale.min = Math.min(scale.min,value);
+      scale.max = Math.max(scale.max,value);
+    }
+  }
+  for (const scale of result.values()) {
+    scale.hasData = Number.isFinite(scale.min);
+    if (!scale.hasData) [scale.min,scale.max] = [0,1];
+    else if (scale.discrete) [scale.min,scale.max] = [0,Math.max(1,scale.max)];
+    else if (scale.min===scale.max) {
+      const pad = Math.max(1,Math.abs(scale.min)*.04);
+      scale.min -= pad;
+      scale.max += pad;
+    } else {
+      const pad = (scale.max-scale.min)*.08;
+      scale.min -= pad;
+      scale.max += pad;
+    }
+    const {fixedMin,fixedMax} = scale;
+    scale.min = fixedMin ?? scale.min;
+    scale.max = fixedMax ?? scale.max;
+    if (scale.min>=scale.max) {
+      if (fixedMin!==undefined) scale.max = fixedMin+Math.max(1,Math.abs(fixedMin)*.04);
+      else scale.min = fixedMax-Math.max(1,Math.abs(fixedMax)*.04);
+    }
+  }
+  return result;
+}
+function axisLabel(value) {
+  return Math.abs(value)>=100000 ? value.toExponential(1) : numberText(Number(value.toPrecision(4)));
+}
+function paintPlot(panel,left,right,points) {
+  const {canvas,signals} = panel;
+  const scales = traceScales(signals,points);
+  panel.scales = scales;
+  const axes = [...scales.values()];
+  const common = axes.filter(scale=>!scale.color);
+  const primaryScale = common.find(scale=>scale.fixedMin!==undefined) || common[0];
+  const dedicated = axes.filter(scale=>scale.color);
+  const labeled = dedicated.length ? dedicated : primaryScale ? [primaryScale] : [];
+  const columnWidth = 64;
+  const origin = columnWidth*Math.max(1,labeled.length);
+  canvas.style.minWidth = origin+210+'px';
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  if (width<120 || height<52) return;
+  const dpi = Math.min(window.devicePixelRatio || 1,3);
+  const pixelsWide = Math.round(width*dpi);
+  const pixelsHigh = Math.round(height*dpi);
+  if (canvas.width!==pixelsWide || canvas.height!==pixelsHigh) {
+    canvas.width = pixelsWide;
+    canvas.height = pixelsHigh;
+  }
+  const context = canvas.getContext('2d');
+  context.setTransform(dpi,0,0,dpi,0,0);
+  context.clearRect(0,0,width,height);
+  const hasData = axes.some(scale=>scale.hasData);
+  panel.key.replaceChildren();
+  if (scales.size) {
+    for (const scale of scales.values()) {
+      const item = document.createElement('span');
+      const customRange = scale.fixedMin!==undefined || scale.fixedMax!==undefined;
+      const legend = scale.color || customRange ? scale.names.join(', ')+' · '+scale.unit : scale.unit;
+      if (scale.color) item.style.color = traceColor(scale.color);
+      item.textContent = (labeled.includes(scale) ? 'Вісь Y · ' : '')+legend+' · '+(scale.hasData || customRange ? axisLabel(scale.min)+'…'+axisLabel(scale.max) : '—');
+      panel.key.append(item);
+    }
+  }
+  const end = width-12;
+  const top = 31;
+  const bottom = height-25;
+  const x = time => origin+(time-left)/(right-left)*(end-origin);
+  const y = (value,scale) => bottom-(value-scale.min)/(scale.max-scale.min)*(bottom-top);
+  context.font = '11px "Segoe UI",sans-serif';
+  const chartColors = getComputedStyle(canvas);
+  const labelColor = chartColors.getPropertyValue('--muted').trim();
+  context.fillStyle = labelColor;
+  context.strokeStyle = chartColors.getPropertyValue('--edge').trim();
+  context.lineWidth = 1;
+  context.textAlign = 'right';
+  context.textBaseline = 'middle';
+  const gridSteps = labeled.length && labeled.every(scale=>scale.discrete) ? 1 : 4;
+  for (let i=0;i<=gridSteps;i++) {
+    const row = bottom-(i/gridSteps)*(bottom-top);
+    context.beginPath();
+    context.moveTo(origin,row);
+    context.lineTo(end,row);
+    context.stroke();
+  }
+  labeled.forEach((scale,index) => {
+    const axisX = columnWidth*(index+1);
+    const color = scale.color ? traceColor(scale.color) : labelColor;
+    context.fillStyle = context.strokeStyle = color;
+    context.beginPath();
+    context.moveTo(axisX,top);
+    context.lineTo(axisX,bottom);
+    context.stroke();
+    context.fillText(scale.unit,axisX-7,12,columnWidth-11);
+    const ticks = scale.discrete ? 1 : 4;
+    for (let i=0;i<=ticks;i++) {
+      const ratio = i/ticks;
+      const row = bottom-ratio*(bottom-top);
+      const value = i===ticks ? scale.max : scale.min+(scale.max-scale.min)*ratio;
+      context.beginPath();
+      context.moveTo(axisX-4,row);
+      context.lineTo(axisX,row);
+      context.stroke();
+      context.fillText(axisLabel(value),axisX-7,row,columnWidth-11);
+    }
+  });
+  context.fillStyle = labelColor;
+  context.strokeStyle = chartColors.getPropertyValue('--edge').trim();
+  const divisions = width<430 ? 2 : 4;
+  for (let i=0;i<=divisions;i++) {
+    const time = left+(right-left)*i/divisions;
+    const column = x(time);
+    context.beginPath();
+    context.moveTo(column,top);
+    context.lineTo(column,bottom);
+    context.stroke();
+    context.textAlign = i===0 ? 'left' : i===divisions ? 'right' : 'center';
+    context.fillText(clock(time),column,height-11);
+  }
+  context.save();
+  context.beginPath();
+  context.rect(origin,top-3,end-origin,bottom-top+6);
+  context.clip();
+  for (const signal of signals) {
+    const scale = scales.get(scaleKey(signal));
+    let previous;
+    context.strokeStyle = context.fillStyle = traceColor(signal.color);
+    context.lineWidth = 1.8;
+    context.beginPath();
+    for (const point of points) {
+      const value = displayValue(signal,point.values.get(signal.address));
+      if (value===undefined) {
+        previous = undefined;
+        continue;
+      }
+      const xx = x(point.time);
+      const yy = y(value,scale);
+      if (previous===undefined) {
+        context.fillRect(xx-1,yy-1,3,3);
+        context.moveTo(xx,yy);
+      } else {
+        if (scale.discrete) context.lineTo(xx,previous);
+        context.lineTo(xx,yy);
+      }
+      previous = yy;
+    }
+    context.stroke();
+  }
+  context.restore();
+  if (!hasData) {
+    context.textAlign = 'center';
+    context.fillStyle = labelColor;
+    const message = !signals.length ? 'Вибери сигнали для відображення' : history.length ? 'У цьому вікні немає вимірів' : 'Підключи ПЧ або запусти демо';
+    context.fillText(message,(origin+end)/2,(top+bottom)/2);
+  }
+  panel.view = {left,right,origin,end,points:points.filter(point=>point.time>=left)};
+}
+function showPoint(panel,event) {
+  const view = panel.view;
+  const tooltip = panel.tooltip;
+  const x = event.offsetX;
+  if (!view?.points.length || x<view.origin || x>view.end) {
+    tooltip.hidden = true;
+    return;
+  }
+  const time = view.left+(x-view.origin)/(view.end-view.origin)*(view.right-view.left);
+  const point = view.points.reduce((best,row) => Math.abs(row.time-time)<Math.abs(best.time-time) ? row : best);
+  const labels = panel.signals.map(signal => {
+    const value = displayValue(signal,point.values.get(signal.address));
+    return signal.name+': '+(value===undefined ? '—' : numberText(value)+' '+chartUnit(signal));
+  });
+  tooltip.textContent = [clock(point.time),...labels].join('\n');
+  tooltip.hidden = false;
+  const {scrollLeft,clientWidth} = panel.viewport;
+  tooltip.style.left = Math.max(scrollLeft+4,Math.min(x+8,scrollLeft+clientWidth-tooltip.offsetWidth-7))+'px';
+  tooltip.style.top = '22px';
+}
+function exportCsv() {
+  if (!history.length) return;
+  const signals = [...sessionSignals.values()];
+  const mode = sessionMode==='demo' ? 'Демо' : 'RS-485';
+  const escape = value => '"'+String(value).replaceAll('"','""')+'"';
+  const header = ['Час (UTC)','Джерело',...signals.map(signal =>
+    signal.name+' ['+(signal.param ? signal.param : signal.code)+', '+signal.address+', '+chartUnit(signal)+']')];
+  const lines = [header.map(escape).join(',')];
+  for (const point of history) {
+    const timestamp = new Date(point.time).toISOString();
+    lines.push([escape(timestamp),escape(mode),...signals.map(signal=>displayValue(signal,point.values.get(signal.address)) ?? '')].join(','));
+  }
+  const blob = new Blob(['\ufeff',lines.join('\r\n'),'\r\n'],{type:'text/csv;charset=utf-8'});
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.download = 'mfc710-'+(sessionMode==='demo' ? 'demo-' : '')+new Date().toISOString().replaceAll(':','-').slice(0,19)+'.csv';
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url),1000);
+}
+
+$('pollMode').addEventListener('change',()=>{
+  updatePollUI();
+  if ($('pollMode').value==='auto') wakePoll?.();
+});
+$('period').addEventListener('change',commitManualPeriod);
+$('period').addEventListener('keydown',event=>{
+  if (event.key!=='Enter') return;
+  event.preventDefault();
+  commitManualPeriod();
+});
+$('baud').addEventListener('change',resetPollTiming);
+$('connect').addEventListener('click',connect);
+$('disconnect').addEventListener('click',() => stopSession());
+$('demo').addEventListener('click',() => {
+  if (!selected.size) pumpPreset();
+  run(newSession('demo'));
+});
+$('pause').addEventListener('click',() => setPause(frozenAt===null));
+$('clear').addEventListener('click',clearHistory);
+$('csv').addEventListener('click',exportCsv);
+$('window').addEventListener('change',requestPlots);
+$('preset').addEventListener('click',pumpPreset);
+$('search').addEventListener('input',listResults);
+$('chooseSignals').addEventListener('click',() => {
+  listResults();
+  $('signalDialog').showModal();
+  $('search').focus();
+});
+$('arm').addEventListener('change',() => {
+  if (demonstration && $('arm').checked && !demonstration.manual) {
+    demonstration.running = Boolean(currentWord(1061));
+    demonstration.output = latest.get(40004)?.value ?? 0;
+    demonstration.manual = true;
+  }
+  if (!$('arm').checked) commandFeedback('');
+  updateControls();
+});
+$('startDrive').addEventListener('click',() => requestCommand('start'));
+$('stopDrive').addEventListener('click',() => requestCommand('stop'));
+$('resetFault').addEventListener('click',() => requestCommand('reset'));
+$('frequencyForm').addEventListener('submit',event => {
+  event.preventDefault();
+  if ($('frequency').reportValidity()) requestCommand('frequency',$('frequency').valueAsNumber*Number($('direction').value));
+});
+$('pidForm').addEventListener('submit',event => {
+  event.preventDefault();
+  if ($('pid').reportValidity()) requestCommand('pid',$('pid').valueAsNumber);
+});
+$('switchChannel').addEventListener('click',() => requestCommand('channel'));
+$('setBlock').addEventListener('click',() => requestCommand('block',Number($('blockMode').value)));
+$('clearBlock').addEventListener('click',() => requestCommand('unblock'));
+const forceBoxes = [['forceStart',0x40],['forceSpeed',0x20],['forcePid',0x10]];
+function showForceSelection(word) {
+  forceBoxes.forEach(([id,bit])=>{ $(id).checked = Boolean(word&bit); });
+}
+$('forcePanel').addEventListener('toggle',() => {
+  if (!$('forcePanel').open) return;
+  showForceSelection(currentWord(2000));
+  forcedInputNodes.forEach((node,index)=>{ node.checked = Boolean(currentWord(2003)&(1<<index)); });
+});
+$('applyForce').addEventListener('click',() => requestCommand('force',forceBoxes.reduce((mask,[id,bit]) => mask|($(id).checked ? bit : 0),0)));
+$('applyInputs').addEventListener('click',() => requestCommand('inputs',forcedInputNodes.reduce((mask,node,index)=>mask|(node.checked ? 1<<index : 0),0)));
+$('restoreInputs').addEventListener('click',() => requestCommand('restore'));
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  const dark = theme==='dark';
+  const label = dark ? 'Увімкнути світлу тему' : 'Увімкнути темну тему';
+  $('theme').setAttribute('aria-pressed',String(dark));
+  $('theme').setAttribute('aria-label',label);
+  $('theme').title = label;
+}
+let preferredTheme;
+try { preferredTheme = localStorage.getItem('rk-theme') || localStorage.getItem('mfc710-rs-theme'); } catch {}
+applyTheme(['light','dark'].includes(preferredTheme) ? preferredTheme : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+$('theme').addEventListener('click',() => {
+  const theme = document.documentElement.dataset.theme==='dark' ? 'light' : 'dark';
+  applyTheme(theme);
+  try { localStorage.setItem('rk-theme',theme); } catch {}
+  renderSignals();
+});
+$('demoFault').addEventListener('click',() => {
+  if (!demonstration || session?.mode!=='demo') return;
+  Object.assign(demonstration,{manual:true,running:false,fault:true});
+  wakePoll?.();
+});
+$('help').addEventListener('click',() => $('helpDialog').showModal());
+$('scale').addEventListener('click',openScales);
+$('applyScale').addEventListener('click',applyScales);
+if (serialAvailable()) {
+  navigator.serial.addEventListener('disconnect',event => {
+    if (source && (event.target===source.port || event.port===source.port)) stopSession('USB–RS‑485 адаптер від’єднано');
+  });
+} else {
+  $('detail').textContent = 'Web Serial недоступний у цій вкладці. Для COM-порту відкрий файл у настільному Chrome або Edge. Демо доступне.';
+}
+initParameterPanel();
+group0.slice(0,4).forEach(addSignal);
+renderSignals();
+</script>
+</body>
+</html>
