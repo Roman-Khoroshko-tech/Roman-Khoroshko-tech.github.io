@@ -21,8 +21,7 @@
       "icon": "chart",
       "status": "ready",
       "order": 20,
-      "version": "2.1.0",
-      "launchLabel": "Запустити →"
+      "version": "2.1.0"
     },
     {
       "id": "mfc710-rs-monitor",
