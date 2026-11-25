@@ -1,4 +1,4 @@
-import {statuses,icons,validateCatalog,filterTools} from './catalog.js';
+import {statuses,icons,validateCatalog,filterTools} from './catalog.js?v=1.1.3';
 const $=id=>document.getElementById(id);
 let tools=[],status='all';
 const theme=$('theme');
@@ -7,11 +7,15 @@ theme.addEventListener('click',()=>{const next=document.documentElement.dataset.
 function element(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;}
 function card(t){
   const available=['ready','beta'].includes(t.status);
-  const c=element(available?'a':'article',available?'card card-link':'card'),top=element('div','card-top'),icon=element('div','tool-icon');icon.setAttribute('aria-hidden','true');
+  const c=element(available?'a':'article',available?'card card-link':'card'),top=element('div','card-top'),icon=element('div','tool-icon');
+  const figure=element('div','tool-icon-group');
+  figure.setAttribute('aria-hidden','true');
   if(available){c.href=t.url;c.setAttribute('aria-label',`Відкрити ${t.name}`);}
   // SVG strings come only from the fixed local allowlist, never from JSON.
   icon.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${icons[t.icon]}</svg>`;
-  top.append(icon,element('span',`badge ${t.status}`,statuses[t.status]));
+  figure.append(icon);
+  if(t.iconLabel)figure.append(element('span','tool-icon-label',t.iconLabel));
+  top.append(figure,element('span',`badge ${t.status}`,statuses[t.status]));
   c.append(top,element('h3','',t.name),element('p','description',t.description));
   const bottom=element('div','card-bottom');bottom.append(element('span','',t.version?`Версія ${t.version}`:'Версію ще не випущено'));
   if(available&&t.launchLabel)bottom.append(element('span','primary',t.launchLabel));

@@ -8,6 +8,7 @@
       "category": "ПЛК та програмування",
       "url": "https://roman-khoroshko-tech.github.io/MFC710-PLC-editor/",
       "icon": "plc",
+      "iconLabel": "MFC710",
       "version": "0.1.0-rc.2",
       "status": "beta",
       "order": 10
@@ -19,6 +20,7 @@
       "category": "HMI та діагностика",
       "url": "https://roman-khoroshko-tech.github.io/MFC2000-HMI-Graphs-Viewer/",
       "icon": "chart",
+      "iconLabel": "MFC2000",
       "status": "beta",
       "order": 20,
       "version": "2.1.0"
@@ -29,7 +31,8 @@
       "description": "Графіки в реальному часі для діагностики, керування та карти параметрування TWERD MFC710 через RS-485.",
       "category": "Моніторинг та керування",
       "url": "https://roman-khoroshko-tech.github.io/mfc710-rs-monitor/",
-      "icon": "chart",
+      "icon": "twisted-pair",
+      "iconLabel": "MFC710",
       "status": "beta",
       "order": 30,
       "version": "0.1.0-beta.1"

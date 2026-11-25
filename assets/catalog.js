@@ -1,5 +1,6 @@
 export const statuses = {ready:'Доступний',beta:'Тестова версія',development:'У розробці',planned:'Заплановано'};
 export const icons = {plc:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 2v3m5-3v3m5-3v3M7 19v3m5-3v3m5-3v3M7 9h3v6H7zm7 0h3m-3 4h3"/>',chart:'<path d="M3 3v18h18M6 15l4-5 4 3 6-8"/>',calculator:'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M8 6h8M8 11h2m4 0h2M8 15h2m4 0h2M8 19h2m4 0h2"/>',book:'<path d="M12 5v16M3 3c4 0 7 0 9 2 2-2 5-2 9-2v16c-4 0-7 0-9 2-2-2-5-2-9-2z"/>'};
+icons['twisted-pair'] = '<path d="M2 7h2c3 0 5 10 8 10s5-10 8-10h2M2 17h2c1.5 0 2.8-2.5 4-5m2-3.8c.6-.7 1.3-1.2 2-1.2 1.5 0 2.8 2.5 4 5m2 3.8c.6.7 1.3 1.2 2 1.2h2"/>';
 export function safeUrl(value) {
   if (typeof value !== 'string' || !value.trim()) return false;
   try { return new URL(value).protocol === 'https:'; } catch { return false; }
@@ -13,6 +14,7 @@ export function validateCatalog(data) {
     for (const key of ['name','description','category']) if (typeof t[key] !== 'string' || !t[key].trim()) throw Error(`${t.id}: відсутнє поле ${key}.`);
     if (!Object.hasOwn(statuses,t.status) || !Object.hasOwn(icons,t.icon) || !Number.isFinite(t.order)) throw Error(`${t.id}: перевірте status, icon та order.`);
     if (t.version !== undefined && (typeof t.version !== 'string' || !t.version.trim())) throw Error(`${t.id}: некоректна версія.`);
+    if (t.iconLabel !== undefined && (typeof t.iconLabel !== 'string' || !t.iconLabel.trim())) throw Error(`${t.id}: некоректний підпис значка.`);
     if (t.launchLabel !== undefined && (typeof t.launchLabel !== 'string' || !t.launchLabel.trim())) throw Error(`${t.id}: некоректний підпис запуску.`);
     if (t.url !== null && !safeUrl(t.url)) throw Error(`${t.id}: URL повинен бути абсолютним HTTPS або null.`);
     if (['ready','beta'].includes(t.status) && !safeUrl(t.url)) throw Error(`${t.id}: доступний інструмент потребує URL.`);
