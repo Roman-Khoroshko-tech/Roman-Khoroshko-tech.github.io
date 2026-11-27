@@ -10,12 +10,10 @@
 |---|---|---|
 | Roman-Khoroshko-tech.github.io | Головний портал | https://roman-khoroshko-tech.github.io/ |
 | [mfc710-rs-monitor-pages-test](https://github.com/Roman-Khoroshko-tech/mfc710-rs-monitor-pages-test) | MFC710 RS Monitor | https://roman-khoroshko-tech.github.io/mfc710-rs-monitor-pages-test/ |
-| MFC710-PLC-editor | Незалежний редактор ПЛК | https://roman-khoroshko-tech.github.io/MFC710-PLC-editor/ |
-| MFC2000-HMI-graphs-viewer | Майбутній переглядач графіків; репозиторій створюється за потреби | https://roman-khoroshko-tech.github.io/MFC2000-HMI-graphs-viewer/ |
+| [MFC710-PLC-editor](https://github.com/Roman-Khoroshko-tech/MFC710-PLC-editor) | MFC710 PLC Studio – графічний редактор вбудованого ПЛК | https://roman-khoroshko-tech.github.io/MFC710-PLC-editor/ |
+| [MFC2000-HMI-Graphs-Viewer](https://github.com/Roman-Khoroshko-tech/MFC2000-HMI-Graphs-Viewer) | MFC2000 HMI Graphs Viewer – перегляд CSV-архівів HMI та побудова графіків частоти, струмів, напруг і температур | https://roman-khoroshko-tech.github.io/MFC2000-HMI-Graphs-Viewer/ |
 
-Це цільові адреси, а не підтвердження публікації. Стан інструмента визначається tools.json.
-
-RS Monitor і PLC Studio публікуються з власних репозиторіїв. Картки каталогу відкривають сторінки інструментів напряму.
+Кожен застосунок публікується з власного репозиторію. Портал бере адреси запуску, статуси та версії з `tools.json`.
 
 ## Файли
 
