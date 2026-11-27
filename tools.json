@@ -30,7 +30,7 @@
       "name": "MFC710 RS Monitor",
       "description": "Графіки в реальному часі для діагностики, керування та карти параметрування TWERD MFC710 через RS-485.",
       "category": "Моніторинг та керування",
-      "url": "https://roman-khoroshko-tech.github.io/mfc710-rs-monitor/",
+      "url": "https://roman-khoroshko-tech.github.io/mfc710-rs-monitor-pages-test/",
       "icon": "twisted-pair",
       "iconLabel": "MFC710",
       "status": "beta",

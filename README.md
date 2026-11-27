@@ -9,7 +9,7 @@
 | Репозиторій | Призначення | Адреса Pages |
 |---|---|---|
 | Roman-Khoroshko-tech.github.io | Головний портал | https://roman-khoroshko-tech.github.io/ |
-| [mfc710-rs-monitor](https://github.com/Roman-Khoroshko-tech/mfc710-rs-monitor) | MFC710 RS Monitor | https://roman-khoroshko-tech.github.io/mfc710-rs-monitor/ |
+| [mfc710-rs-monitor-pages-test](https://github.com/Roman-Khoroshko-tech/mfc710-rs-monitor-pages-test) | MFC710 RS Monitor | https://roman-khoroshko-tech.github.io/mfc710-rs-monitor-pages-test/ |
 | MFC710-PLC-editor | Незалежний редактор ПЛК | https://roman-khoroshko-tech.github.io/MFC710-PLC-editor/ |
 | MFC2000-HMI-graphs-viewer | Майбутній переглядач графіків; репозиторій створюється за потреби | https://roman-khoroshko-tech.github.io/MFC2000-HMI-graphs-viewer/ |
 
